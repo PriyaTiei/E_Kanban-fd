@@ -1,21 +1,8 @@
 import { Package, AlertTriangle, CheckCircle } from "lucide-react"
+import { StationsCurrentStatus } from "../lib/types"
 
 interface StationCardProps {
-  station: {
-    id: number
-    name: string
-    parts: Array<{
-      id: number
-      partId: number
-      binQuantity: number
-      currentQuantity: number
-      consumptionPerProduct: number
-    }>
-    currentProduct?: {
-      productId: number
-      timestamp: string
-    }
-  }
+  station: StationsCurrentStatus
 }
 
 export default function StationCard({ station }: StationCardProps) {
@@ -52,14 +39,13 @@ export default function StationCard({ station }: StationCardProps) {
     <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-gray-600 transition-colors">
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-lg font-semibold text-white">{station.name}</h3>
-        <div className="text-sm text-gray-400">ID: {station.id}</div>
       </div>
 
       {station.currentProduct && (
         <div className="mb-4 p-3 bg-blue-900/20 border border-blue-700 rounded-lg">
           <div className="flex items-center space-x-2">
             <Package className="h-4 w-4 text-blue-400" />
-            <span className="text-blue-300 font-medium">Product {station.currentProduct.productId}</span>
+            <span className="text-blue-300 font-medium">Variant {station.currentProduct.productName}</span>
           </div>
           <div className="text-xs text-blue-400 mt-1">
             {new Date(station.currentProduct.timestamp).toLocaleString()}
@@ -81,7 +67,7 @@ export default function StationCard({ station }: StationCardProps) {
               >
                 <div className="flex items-center space-x-2">
                   {getStatusIcon(status)}
-                  <span className="text-sm font-medium">Part {part.partId}</span>
+                  <span className="text-sm font-medium">Part {part.partName}</span>
                 </div>
                 <div className="text-right">
                   <div className="text-sm font-bold">

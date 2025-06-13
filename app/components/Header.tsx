@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Factory, Package, Truck } from "lucide-react"
+import { Factory, Forklift, KanbanSquare, Package } from "lucide-react"
 
 export default function Header() {
   const pathname = usePathname()
@@ -10,7 +10,7 @@ export default function Header() {
   const navItems = [
     { href: "/", label: "Production Line", icon: Factory },
     { href: "/preparation-list", label: "Preparation List", icon: Package },
-    { href: "/supply-list", label: "Supply List", icon: Truck },
+    { href: "/supply-list", label: "Supply List", icon: Forklift },
   ]
 
   return (
@@ -18,7 +18,7 @@ export default function Header() {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center space-x-2">
-            <Factory className="h-8 w-8 text-blue-500" />
+            <KanbanSquare className="h-8 w-8 text-blue-500" />
             <h1 className="text-xl font-bold text-white">E-Kanban System</h1>
           </div>
 

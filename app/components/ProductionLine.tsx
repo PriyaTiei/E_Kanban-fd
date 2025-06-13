@@ -1,37 +1,53 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { fetchStationParts, fetchProductEntryLogs } from "../lib/api"
+import { fetchStationParts, fetchProductEntryLogs, simulateSensorTrigger, fetchPreparationKanbansCount, fetchSupplyKanbansCount, fetchStations } from "../lib/api"
 import StationCard from "./StationCard"
-import { RefreshCw, Activity } from "lucide-react"
+import { RefreshCw, Activity, Computer } from "lucide-react"
+import { ProductEntryLog, Station, StationPart, StationsCurrentStatus } from "../lib/types"
 
 export default function ProductionLine() {
-  const [stations, setStations] = useState<any[]>([])
+  const [stations, setStations] = useState<StationsCurrentStatus[]>([])
+  const [kanbansToPrepare, setKanbansToPrepare] = useState<null | number>(null)
+  const [kanbansToSupply, setKanbansToSupply] = useState<null | number>(null)
   const [loading, setLoading] = useState(true)
-  const [lastUpdate, setLastUpdate] = useState<Date>(new Date())
+  const [countLoading, setCountLoading] = useState(true)
+  const [lastUpdate, setLastUpdate] = useState<null | Date>(null)
 
   const loadData = async () => {
     setLoading(true)
     try {
-      const [stationParts, productLogs] = await Promise.all([fetchStationParts(), fetchProductEntryLogs()])
+      const [stationParts, stations, productLogs]:[stationParts:StationPart[], stations:Station[], productLogs:ProductEntryLog[]] = await Promise.all([fetchStationParts(), fetchStations(), fetchProductEntryLogs()])
 
       // Group station parts by station ID
       const stationMap = new Map()
 
-      stationParts.forEach((part: any) => {
+      stationParts.forEach((part) => {
         if (!stationMap.has(part.stationId)) {
           stationMap.set(part.stationId, {
-            id: part.stationId,
-            name: `Station ${part.stationId}`,
-            parts: [],
-            currentProduct: null,
+        id: part.stationId,
+        name: `Station ${part.stationName}`,
+        parts: [],
+        currentProduct: null,
           })
         }
         stationMap.get(part.stationId).parts.push(part)
       })
 
+      // Add any missing stations from stations array
+      stations.forEach((station) => {
+        if (!stationMap.has(station.id)) {
+          stationMap.set(station.id, {
+        id: station.id,
+        name: `Station ${station.name}`,
+        parts: [],
+        currentProduct: null,
+          })
+        }
+      })
+
       // Add current products to stations
-      productLogs.forEach((log: any) => {
+      productLogs.forEach((log) => {
         if (stationMap.has(log.stationId)) {
           const station = stationMap.get(log.stationId)
           if (!station.currentProduct || new Date(log.timestamp) > new Date(station.currentProduct.timestamp)) {
@@ -49,9 +65,45 @@ export default function ProductionLine() {
     }
   }
 
+  const loadCounts  = async () => {
+    setCountLoading(true)
+    try {
+      const [kanbansToPrepare, kanbansToSupply] = await Promise.all([fetchPreparationKanbansCount(), fetchSupplyKanbansCount()])
+      console.log("Kanbans to prepare:", kanbansToPrepare, "Kanbans to supply:", kanbansToSupply);
+      
+      setKanbansToPrepare(kanbansToPrepare.total || 0)
+      setKanbansToSupply(kanbansToSupply.total || 0)
+    } catch (error) {
+      console.error("Error loading kanban counts:", error)
+    } finally {
+      setCountLoading(false)
+    }
+  }
+
+  const handleSimulate = async () => {
+    // Simulate a product entry log for demonstration purposes
+    const variants = [328, 319, 425]
+    const randomVariant = variants[Math.floor(Math.random() * variants.length)]
+    const simulatedProductEntry = {
+      variant: randomVariant,
+    }
+
+    try{
+      const response =  await simulateSensorTrigger(simulatedProductEntry);
+      if (response) {
+        console.log("Product entry log simulated successfully")
+        loadData() // Reload data after simulation
+      } else {
+        console.error("Failed to simulate product entry log")
+      }
+    } catch(error) {
+      console.error("Error simulating product entry log:", error)
+    }
+  }
+
   useEffect(() => {
     loadData()
-
+    loadCounts()
     // Auto-refresh every 30 seconds
     const interval = setInterval(loadData, 30000)
     return () => clearInterval(interval)
@@ -66,10 +118,20 @@ export default function ProductionLine() {
         </div>
 
         <div className="flex items-center space-x-4">
-          <div className="text-sm text-gray-400">Last updated: {lastUpdate.toLocaleTimeString()}</div>
+          <button onClick={handleSimulate} className="btn-primary flex items-center space-x-2">
+            <Computer className="h-4 w-4" />
+            <span className="hidden sm:inline">Simulate</span>
+          </button>
+          <div className="text-sm inline-flex items-center gap-1 text-gray-400">Last updated: 
+            {lastUpdate ?
+              <span>{lastUpdate?.toLocaleTimeString()}</span>
+              :
+              <div className="h-4 w-20 bg-gray-600 rounded animate-pulse" />
+            }
+          </div>
           <button onClick={loadData} disabled={loading} className="btn-primary flex items-center space-x-2">
             <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-            <span>Refresh</span>
+            <span className="hidden sm:inline">Refresh</span>
           </button>
         </div>
       </div>
@@ -89,7 +151,7 @@ export default function ProductionLine() {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-8">
             {stations.map((station) => (
               <StationCard key={station.id} station={station} />
             ))}
@@ -98,26 +160,46 @@ export default function ProductionLine() {
           <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
             <h2 className="text-xl font-semibold text-white mb-4">Production Summary</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-gray-700 rounded-lg p-4">
-                <div className="text-2xl font-bold text-blue-400">{stations.length}</div>
-                <div className="text-gray-300">Active Stations</div>
+              <div className="bg-gray-700 flex flex-col gap-4 rounded-lg p-4">
+                {countLoading ? (
+                  <div className="h-8 w-20 bg-gray-600 rounded animate-pulse mb-2" />
+                ) : (
+                  <div className="text-2xl font-bold text-blue-400">{kanbansToPrepare}</div>
+                )}
+                <div className="text-gray-300">Total Kanbans To Prepare</div>
               </div>
-              <div className="bg-gray-700 rounded-lg p-4">
-                <div className="text-2xl font-bold text-green-400">
-                  {stations.filter((s) => s.currentProduct).length}
+              <div className="bg-gray-700 flex flex-col gap-4 rounded-lg p-4">
+                {countLoading ? (
+                  <div className="h-8 w-20 bg-gray-600 rounded animate-pulse mb-2" />
+                ) : (
+                  <div className="text-2xl font-bold text-green-400">{kanbansToSupply}</div>
+                )}
+                <div className="text-gray-300">Total Kanbans To Supply</div>
+              </div>
+                <div className="bg-gray-700 flex flex-col gap-4 rounded-lg p-4">
+                  <div className="flex items-center gap-6">
+                    <div className="text-2xl font-bold text-yellow-400">
+                      {stations.reduce(
+                      (acc, station) =>
+                        acc + station.parts.filter((part: any) => part.currentQuantity / part.binQuantity <= 0.2).length,
+                      0,
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 flex-nowrap overflow-x-auto">
+                      {stations
+                      .filter(station =>
+                        station.parts.some((part: any) => part.currentQuantity / part.binQuantity <= 0.2)
+                      )
+                      .map(station => (
+                        <div key={station.id} className="w-max p-2 border border-yellow-300 text-xs text-yellow-300">
+                          {station.name.split(" ")[1]}
+                        </div>
+                      ))
+                      }
+                    </div>
+                  </div>
+                  <div className="text-gray-300">Critical Parts</div>
                 </div>
-                <div className="text-gray-300">Stations with Products</div>
-              </div>
-              <div className="bg-gray-700 rounded-lg p-4">
-                <div className="text-2xl font-bold text-yellow-400">
-                  {stations.reduce(
-                    (acc, station) =>
-                      acc + station.parts.filter((part: any) => part.currentQuantity / part.binQuantity <= 0.2).length,
-                    0,
-                  )}
-                </div>
-                <div className="text-gray-300">Critical Parts</div>
-              </div>
             </div>
           </div>
         </>
