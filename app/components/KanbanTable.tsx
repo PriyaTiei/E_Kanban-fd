@@ -2,25 +2,25 @@
 
 import { useState } from "react"
 import { Check, X, Loader2 } from "lucide-react"
-import { KanbanItem } from "../lib/types"
+import { KanbanItem, KanbanModifyDetails } from "../lib/types"
 
 interface KanbanTableProps {
   data: KanbanItem[]
-  onUpdate: (updateKanban: {stationId:number; partId:number; productId: number}) => Promise<boolean>
-  onDelete: (deleteKanban: {stationId:number; partId:number; productId: number}) => Promise<boolean>
+  onUpdate: (updateKanban: KanbanModifyDetails) => Promise<boolean>
+  onDelete: (deleteKanban: KanbanModifyDetails) => Promise<boolean>
   title: string
 }
 
 export default function KanbanTable({ data, onUpdate, onDelete, title }: KanbanTableProps) {
   const [loading, setLoading] = useState<{ [key: string]: "update" | "delete" | null }>({})
 
-  const handleAction = async (stationId:number, productId:number, partId:number, action: "update" | "delete") => {
+  const handleAction = async (plantId:number, stationId:number, productId:number, partId:number, action: "update" | "delete") => {
     console.log(`Handling action: ${action} for stationId: ${stationId}, partId: ${partId}, productId: ${productId}`);
     
     setLoading((prev) => ({ ...prev, [`${stationId}-${partId}-${productId}`]: action }))
 
     try {
-      const modifyDetails = {stationId: stationId, partId: partId, productId: productId}
+      const modifyDetails = {plantId:plantId, stationId: stationId, partId: partId, productId: productId}
       console.log(`Attempting to ${action} kanban item:`, modifyDetails);
       
       const success = action === "update" ? await onUpdate(modifyDetails) : await onDelete(modifyDetails)
@@ -94,7 +94,7 @@ export default function KanbanTable({ data, onUpdate, onDelete, title }: KanbanT
                   <td className="px-6 py-4 whitespace-nowrap text-center">
                     <div className="flex justify-center space-x-2">
                       <button
-                        onClick={() => handleAction(item.stationId, item.productId, item.partId, "update")}
+                        onClick={() => handleAction(item.plantId, item.stationId, item.productId, item.partId, "update")}
                         disabled={loading[`${item.stationId}-${item.partId}-${item.productId}`] != null}
                         className="btn-success p-0 flex items-center justify-center w-8 h-8"
                         title="Mark as Done"
@@ -106,7 +106,7 @@ export default function KanbanTable({ data, onUpdate, onDelete, title }: KanbanT
                         )}
                       </button>
                       <button
-                        onClick={() => handleAction(item.stationId, item.productId, item.partId, "delete")}
+                        onClick={() => handleAction(item.plantId, item.stationId, item.productId, item.partId, "delete")}
                         disabled={loading[`${item.stationId}-${item.partId}-${item.productId}`] != null}
                         className="btn-danger p-0 flex items-center justify-center w-8 h-8"
                         title="Reject"

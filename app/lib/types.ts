@@ -25,6 +25,7 @@ export interface ProductEntryLog {
 
 export interface KanbanItem {
   id: number
+  plantId:number
   stationId: number
   stationName: string
   partId: number
@@ -50,4 +51,23 @@ export interface StationsCurrentStatus {
   name: string
   parts: Array<StationPart>
   currentProduct?: ProductEntryLog
+}
+
+export interface KanbanModifyDetails {
+  plantId:number 
+  stationId:number 
+  partId:number 
+  productId: number
+}
+
+export interface ErrorResponse {
+  error: string
+}
+
+export interface User {
+  id: number
+  username: string
+  role: "admin" | "logistics" | "supplier"
+  plantId?: number | null
+  plantName?: string | null
 }

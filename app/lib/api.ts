@@ -1,3 +1,5 @@
+import { ErrorResponse, KanbanModifyDetails, User } from "./types"
+
 const API_BASE = "http://10.82.126.73:3058"
 
 export async function fetchStationParts(): Promise<any[]> {
@@ -66,7 +68,7 @@ export async function fetchSupplyKanbansCount() {
   }
 }
 
-export async function updatePreparationKanban(updateKanban:{stationId:number; partId:number; productId: number}): Promise<boolean> {
+export async function updatePreparationKanban(updateKanban:KanbanModifyDetails): Promise<boolean> {
   try {
     console.log("Updating preparation kanban:", updateKanban);
     
@@ -84,21 +86,27 @@ export async function updatePreparationKanban(updateKanban:{stationId:number; pa
   }
 }
 
-export async function deletePreparationKanban(deleteKanban:{stationId:number; partId:number; productId: number}): Promise<boolean> {
+export async function deletePreparationKanban(deleteKanban: KanbanModifyDetails): Promise<boolean> {
   try {
-    const response = await fetch(`${API_BASE}/preparation-sheet/kanban`, {
+    const params = new URLSearchParams({
+      plantId: String(deleteKanban.plantId),
+      stationId: String(deleteKanban.stationId),
+      partId: String(deleteKanban.partId),
+      productId: String(deleteKanban.productId),
+    }).toString();
+
+    const response = await fetch(`${API_BASE}/preparation-sheet/kanban?${params}`, {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(deleteKanban),
-    })
-    return response.ok
+    });
+    return response.ok;
   } catch (error) {
-    console.error("Error deleting preparation kanban:", error)
-    return false
+    console.error("Error deleting preparation kanban:", error);
+    return false;
   }
 }
 
-export async function updateSupplyKanban(updateKanban:{stationId:number; partId:number; productId: number}): Promise<boolean> {
+export async function updateSupplyKanban(updateKanban:KanbanModifyDetails): Promise<boolean> {
   try {
     const response = await fetch(`${API_BASE}/supply-sheet/kanban`, {
       method: "PUT",
@@ -112,16 +120,22 @@ export async function updateSupplyKanban(updateKanban:{stationId:number; partId:
   }
 }
 
-export async function deleteSupplyKanban(deleteKanban:{stationId:number; partId:number; productId: number}): Promise<boolean> {
+export async function deleteSupplyKanban(deleteKanban: KanbanModifyDetails): Promise<boolean> {
   try {
-    const response = await fetch(`${API_BASE}/supply-sheet/kanban`, {
+    const params = new URLSearchParams({
+      plantId: String(deleteKanban.plantId),
+      stationId: String(deleteKanban.stationId),
+      partId: String(deleteKanban.partId),
+      productId: String(deleteKanban.productId),
+    }).toString();
+
+    const response = await fetch(`${API_BASE}/supply-sheet/kanban?${params}`, {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(deleteKanban),
-    })
-    return response.ok
+    });
+    return response.ok;
   } catch (error) {
-    console.error("Error deleting supply kanban:", error)
+    console.error("Error deleting supply kanban:", error);
     return false
   }
 }
@@ -172,5 +186,54 @@ export async function simulateGDSensorTrigger(product:{variant: number}): Promis
   } catch (error) {
     console.error("Error updating station part:", error)
     return false
+  }
+}
+
+
+export async function loginUser(username: string, password: string): Promise<User | ErrorResponse | null> {
+  try {
+    const response = await fetch(`${API_BASE}/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password }),
+    })
+    
+    if (!response.ok) throw new Error("Authentication failed")
+    
+    return await response.json()
+  } catch (error) {
+    console.error("Error authenticating user:", error)
+    return null
+  }
+}
+
+export async function logoutUser(): Promise<void> {
+  try {
+    const response = await fetch(`${API_BASE}/auth/logout`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+    })
+    
+    if (!response.ok) throw new Error("Logout failed")
+    
+    console.log("User logged out successfully")
+  } catch (error) {
+    console.error("Error logging out user:", error)
+  }
+}
+
+export async function fetchUserProfile(): Promise<User | ErrorResponse | null> {
+  try {
+    const response = await fetch(`${API_BASE}/auth/me`, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+    })
+    
+    if (!response.ok) throw new Error("Failed to fetch user profile")
+    
+    return await response.json()
+  } catch (error) {
+    console.error("Error fetching user profile:", error)
+    return null
   }
 }
