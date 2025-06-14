@@ -1,11 +1,12 @@
-import { Package, AlertTriangle, CheckCircle } from "lucide-react"
-import { StationsCurrentStatus } from "../lib/types"
+import { Package, AlertTriangle, CheckCircle, KanbanSquare } from "lucide-react"
+import type { StationsCurrentStatus } from "../lib/types"
 
 interface StationCardProps {
   station: StationsCurrentStatus
+  refilledParts?: Set<string>
 }
 
-export default function StationCard({ station }: StationCardProps) {
+export default function StationCard({ station, refilledParts = new Set() }: StationCardProps) {
   const getQuantityStatus = (current: number, bin: number) => {
     const percentage = (current / bin) * 100
     if (percentage <= 20) return "critical"
@@ -35,6 +36,10 @@ export default function StationCard({ station }: StationCardProps) {
     }
   }
 
+  const isPartRefilled = (partId: number) => {
+    return refilledParts.has(`${station.id}-${partId}`)
+  }
+
   return (
     <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-gray-600 transition-colors">
       <div className="flex items-center justify-between mb-3">
@@ -60,14 +65,18 @@ export default function StationCard({ station }: StationCardProps) {
         ) : (
           station.parts.map((part) => {
             const status = getQuantityStatus(part.currentQuantity, part.binQuantity)
+            const isRefilled = isPartRefilled(part.id)
             return (
               <div
                 key={part.id}
-                className={`flex items-center justify-between p-2 rounded border ${getStatusColor(status)}`}
+                className={`flex items-center justify-between p-2 rounded border ${getStatusColor(status)} ${isRefilled ? "ring-2 ring-blue-400" : ""}`}
               >
                 <div className="flex items-center space-x-2">
                   {getStatusIcon(status)}
                   <span className="text-sm font-medium">Part {part.partName}</span>
+                  {isRefilled && (
+                    <KanbanSquare className="h-4 w-4 text-blue-400 animate-pulse" title="Recently refilled" />
+                  )}
                 </div>
                 <div className="text-right">
                   <div className="text-sm font-bold">

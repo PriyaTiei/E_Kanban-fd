@@ -1,4 +1,3 @@
-
 "use client"
 
 import KanbanTable from "../components/KanbanTable"
