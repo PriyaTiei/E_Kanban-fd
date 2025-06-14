@@ -1,4 +1,4 @@
-import { ErrorResponse, KanbanModifyDetails, User } from "./types"
+import { ErrorResponse, KanbanItem, KanbanModifyDetails, User } from "./types"
 
 const API_BASE = "http://10.82.126.73:3058"
 
@@ -235,5 +235,16 @@ export async function fetchUserProfile(): Promise<User | ErrorResponse | null> {
   } catch (error) {
     console.error("Error fetching user profile:", error)
     return null
+  }
+}
+
+export async function fetchKanbanLogs(): Promise<KanbanItem[]> {
+  try {
+    const response = await fetch(`${API_BASE}/kanban-logs`)
+    if (!response.ok) throw new Error("Failed to fetch kanban logs")
+    return await response.json()
+  } catch (error) {
+    console.error("Error fetching kanban logs:", error)
+    return []
   }
 }

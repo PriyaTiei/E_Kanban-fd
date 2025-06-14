@@ -26,6 +26,7 @@ export interface ProductEntryLog {
 export interface KanbanItem {
   id: number
   plantId:number
+  plantName?: string
   stationId: number
   stationName: string
   partId: number
