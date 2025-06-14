@@ -76,6 +76,7 @@ export default function ProductionLine() {
       // Check for refilled critical parts
       const currentCriticalParts = new Set<string>()
       const newRefilledParts = new Set<string>()
+      let refilledPartsNames = "";
 
       newStations.forEach((station) => {
         station.parts.forEach((part: any) => {
@@ -87,14 +88,15 @@ export default function ProductionLine() {
           } else if (previousCriticalParts.has(partKey)) {
             // Part was critical but now is not - it was refilled
             newRefilledParts.add(partKey)
-            toast({
-              title: "Part Refilled",
-              description: `${part.partName} at ${station.name} has been refilled!`,
-            })
+            refilledPartsNames += `${part.partName} at ${station.name},`;
           }
         })
       })
-
+      
+      refilledPartsNames && toast({
+        title: "Part Refilled",
+        description: `${refilledPartsNames.slice(0,refilledPartsNames.length - 1)} has been refilled!`,
+      })
       setPreviousCriticalParts(currentCriticalParts)
       setRefilledParts(newRefilledParts)
       setStations(newStations)
@@ -141,10 +143,6 @@ export default function ProductionLine() {
       const response = await simulateGDSensorTrigger(simulatedProductEntry)
       if (response) {
         console.log("Product entry log simulated successfully")
-        toast({
-          title: "Simulation Complete",
-          description: `Product variant ${randomVariant} entry simulated successfully`,
-        })
         loadData() // Reload data after simulation
       } else {
         console.error("Failed to simulate product entry log")

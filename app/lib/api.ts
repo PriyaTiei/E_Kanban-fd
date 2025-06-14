@@ -4,7 +4,9 @@ const API_BASE = "http://10.82.126.73:3058"
 
 export async function fetchStationParts(): Promise<any[]> {
   try {
-    const response = await fetch(`${API_BASE}/station-parts`)
+    const response = await fetch(`${API_BASE}/station-parts`, {
+      credentials: "include",
+    })
     if (!response.ok) throw new Error("Failed to fetch station parts")
     return await response.json()
   } catch (error) {
@@ -15,7 +17,9 @@ export async function fetchStationParts(): Promise<any[]> {
 
 export async function fetchProductEntryLogs(): Promise<any[]> {
   try {
-    const response = await fetch(`${API_BASE}/product-entry-logs`)
+    const response = await fetch(`${API_BASE}/product-entry-logs`, {
+      credentials: "include",
+    })
     if (!response.ok) throw new Error("Failed to fetch product entry logs")
     return await response.json()
   } catch (error) {
@@ -24,9 +28,11 @@ export async function fetchProductEntryLogs(): Promise<any[]> {
   }
 }
 
-export async function fetchPreparationKanbans(): Promise<any[]> {
+export async function fetchPreparationKanbans(): Promise<KanbanItem[]> {
   try {
-    const response = await fetch(`${API_BASE}/preparation-sheet/kanbans`)
+    const response = await fetch(`${API_BASE}/preparation-sheet/kanbans`, {
+      credentials: "include",
+    })
     if (!response.ok) throw new Error("Failed to fetch preparation kanbans")
     return await response.json()
   } catch (error) {
@@ -37,7 +43,9 @@ export async function fetchPreparationKanbans(): Promise<any[]> {
 
 export async function fetchPreparationKanbansCount() {
   try {
-    const response = await fetch(`${API_BASE}/preparation-sheet/kanbans/count`)
+    const response = await fetch(`${API_BASE}/preparation-sheet/kanbans/count`, {
+      credentials: "include",
+    })
     if (!response.ok) throw new Error("Failed to fetch preparation kanbans count")
     return await response.json()
   } catch (error) {
@@ -46,9 +54,11 @@ export async function fetchPreparationKanbansCount() {
   }
 }
 
-export async function fetchSupplyKanbans(): Promise<any[]> {
+export async function fetchSupplyKanbans(): Promise<KanbanItem[]> {
   try {
-    const response = await fetch(`${API_BASE}/supply-sheet/kanbans`)
+    const response = await fetch(`${API_BASE}/supply-sheet/kanbans`, {
+      credentials: "include",
+    })
     if (!response.ok) throw new Error("Failed to fetch supply kanbans")
     return await response.json()
   } catch (error) {
@@ -59,7 +69,9 @@ export async function fetchSupplyKanbans(): Promise<any[]> {
 
 export async function fetchSupplyKanbansCount() {
   try {
-    const response = await fetch(`${API_BASE}/supply-sheet/kanbans/count`)
+    const response = await fetch(`${API_BASE}/supply-sheet/kanbans/count`, {
+      credentials: "include",
+    })
     if (!response.ok) throw new Error("Failed to fetch supply kanbans count")
     return await response.json()
   } catch (error) {
@@ -76,6 +88,7 @@ export async function updatePreparationKanban(updateKanban:KanbanModifyDetails):
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(updateKanban),
+      credentials: "include",
     })
     console.log("Response:", response.json);
     
@@ -98,6 +111,7 @@ export async function deletePreparationKanban(deleteKanban: KanbanModifyDetails)
     const response = await fetch(`${API_BASE}/preparation-sheet/kanban?${params}`, {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
+      credentials: "include",
     });
     return response.ok;
   } catch (error) {
@@ -112,6 +126,7 @@ export async function updateSupplyKanban(updateKanban:KanbanModifyDetails): Prom
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(updateKanban),
+      credentials: "include",
     })
     return response.ok
   } catch (error) {
@@ -132,6 +147,7 @@ export async function deleteSupplyKanban(deleteKanban: KanbanModifyDetails): Pro
     const response = await fetch(`${API_BASE}/supply-sheet/kanban?${params}`, {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
+      credentials: "include",
     });
     return response.ok;
   } catch (error) {
@@ -142,7 +158,9 @@ export async function deleteSupplyKanban(deleteKanban: KanbanModifyDetails): Pro
 
 export async function fetchProductVariants(): Promise<any[]> {
   try {
-    const response = await fetch(`${API_BASE}/product-variants`)
+    const response = await fetch(`${API_BASE}/product-variants`, {
+      credentials: "include",
+    })
     if (!response.ok) throw new Error("Failed to fetch product variants")
     return await response.json()
   } catch (error) {
@@ -153,7 +171,9 @@ export async function fetchProductVariants(): Promise<any[]> {
 
 export async function fetchStations(): Promise<any[]> {
   try {
-    const response = await fetch(`${API_BASE}/stations`)
+    const response = await fetch(`${API_BASE}/stations`, {
+      credentials: "include",
+    })
     if (!response.ok) throw new Error("Failed to fetch stations")
     return await response.json()
   } catch (error) {
@@ -164,7 +184,9 @@ export async function fetchStations(): Promise<any[]> {
 
 export async function fetchParts(): Promise<any[]> {
   try {
-    const response = await fetch(`${API_BASE}/parts`)
+    const response = await fetch(`${API_BASE}/parts`, {
+      credentials: "include",
+    })
     if (!response.ok) throw new Error("Failed to fetch parts")
     return await response.json()
   } catch (error) {
@@ -179,6 +201,7 @@ export async function simulateGDSensorTrigger(product:{variant: number}): Promis
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(product),
+      credentials: "include",
     })
     console.log("Simulating sensor trigger with variant:", response);
     
@@ -194,6 +217,7 @@ export async function loginUser(username: string, password: string): Promise<Use
   try {
     const response = await fetch(`${API_BASE}/auth/login`, {
       method: "POST",
+      credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ username, password }),
     })
@@ -211,6 +235,7 @@ export async function logoutUser(): Promise<void> {
   try {
     const response = await fetch(`${API_BASE}/auth/logout`, {
       method: "POST",
+      credentials: "include",
       headers: { "Content-Type": "application/json" },
     })
     
@@ -226,10 +251,11 @@ export async function fetchUserProfile(): Promise<User | ErrorResponse | null> {
   try {
     const response = await fetch(`${API_BASE}/auth/me`, {
       method: "GET",
+      credentials: "include",
       headers: { "Content-Type": "application/json" },
     })
     
-    if (!response.ok) throw new Error("Failed to fetch user profile")
+    // if (!response.ok) throw new Error("Failed to fetch user profile")
     
     return await response.json()
   } catch (error) {
@@ -240,7 +266,9 @@ export async function fetchUserProfile(): Promise<User | ErrorResponse | null> {
 
 export async function fetchKanbanLogs(): Promise<KanbanItem[]> {
   try {
-    const response = await fetch(`${API_BASE}/kanban-logs`)
+    const response = await fetch(`${API_BASE}/kanban-logs`, {
+      credentials: "include",
+    })
     if (!response.ok) throw new Error("Failed to fetch kanban logs")
     return await response.json()
   } catch (error) {

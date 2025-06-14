@@ -17,6 +17,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
+import { useAuth } from "../contexts/AuthContext"
 
 interface KanbanTableProps {
   data: KanbanItem[]
@@ -26,6 +27,7 @@ interface KanbanTableProps {
 }
 
 export default function KanbanTable({ data, onUpdate, onDelete, title }: KanbanTableProps) {
+  const { user } = useAuth()
   const [loading, setLoading] = useState<{ [key: string]: "update" | "delete" | null }>({})
   const { toast } = useToast()
 
@@ -55,7 +57,7 @@ export default function KanbanTable({ data, onUpdate, onDelete, title }: KanbanT
       } else {
         toast({
           title: "Action Failed",
-          description: `Failed to ${action} kanban item. Please try again.`,
+          description: `Failed to ${action} kanban item.`,
           variant: "destructive",
         })
       }
@@ -99,6 +101,7 @@ export default function KanbanTable({ data, onUpdate, onDelete, title }: KanbanT
       "id",
       "stationId",
       "partId",
+      "plantId",
       "productId",
     ]
     if (title === "Preparation List") {
@@ -172,43 +175,60 @@ export default function KanbanTable({ data, onUpdate, onDelete, title }: KanbanT
                         )}
                       </button>
 
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <button
-                            disabled={loading[`${item.stationId}-${item.partId}-${item.productId}`] != null}
-                            className="btn-danger p-0 flex items-center justify-center w-8 h-8"
-                            title="Reject"
-                          >
-                            {loading[`${item.stationId}-${item.partId}-${item.productId}`] === "delete" ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              <X className="h-4 w-4" />
-                            )}
-                          </button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent className="bg-gray-800 border-gray-700">
-                          <AlertDialogHeader>
-                            <AlertDialogTitle className="text-white">Confirm Rejection</AlertDialogTitle>
-                            <AlertDialogDescription className="text-gray-300">
-                              Are you sure you want to reject this kanban request for <strong>{item.partName}</strong>{" "}
-                              at <strong>{item.stationName}</strong>? This action cannot be undone.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel className="bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600">
-                              Cancel
-                            </AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() =>
-                                handleAction(item.plantId, item.stationId, item.productId, item.partId, "delete")
-                              }
-                              className="bg-red-600 hover:bg-red-700 text-white"
+                      {user?.role === "admin" ? (
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <button
+                              disabled={loading[`${item.stationId}-${item.partId}-${item.productId}`] != null}
+                              className="btn-danger p-0 flex items-center justify-center w-8 h-8"
+                              title="Reject"
                             >
-                              Reject
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
+                              {loading[`${item.stationId}-${item.partId}-${item.productId}`] === "delete" ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <X className="h-4 w-4" />
+                              )}
+                            </button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent className="bg-gray-800 border-gray-700">
+                            <AlertDialogHeader>
+                              <AlertDialogTitle className="text-white">Confirm Rejection</AlertDialogTitle>
+                              <AlertDialogDescription className="text-gray-300">
+                                Are you sure you want to reject this kanban request for <strong>{item.partName}</strong>{" "}
+                                at <strong>{item.stationName}</strong>? This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel className="bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600">
+                                Cancel
+                              </AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() =>
+                                  handleAction(item.plantId, item.stationId, item.productId, item.partId, "delete")
+                                }
+                                className="bg-red-600 hover:bg-red-700 text-white"
+                              >
+                                Reject
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      ) : (
+                        <button
+                          disabled={loading[`${item.stationId}-${item.partId}-${item.productId}`] != null}
+                          className="btn-danger p-0 flex items-center justify-center w-8 h-8"
+                          title="Reject"
+                          onClick={() =>
+                            toast({
+                              title: "Not allowed",
+                              description: "You are not allowed to reject kanban requests.",
+                              variant: "destructive",
+                            })
+                          }
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>

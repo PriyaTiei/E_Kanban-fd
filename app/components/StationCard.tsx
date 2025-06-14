@@ -75,7 +75,7 @@ export default function StationCard({ station, refilledParts = new Set() }: Stat
                   {getStatusIcon(status)}
                   <span className="text-sm font-medium">Part {part.partName}</span>
                   {isRefilled && (
-                    <KanbanSquare className="h-4 w-4 text-blue-400 animate-pulse" title="Recently refilled" />
+                    <div title="Recently refilled"><KanbanSquare className="h-4 w-4 text-blue-400 animate-pulse" /></div>
                   )}
                 </div>
                 <div className="text-right">

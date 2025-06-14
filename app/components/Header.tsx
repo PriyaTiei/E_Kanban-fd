@@ -26,7 +26,7 @@ export default function Header() {
     { href: "/", label: "Production Line", icon: Factory },
     { href: "/preparation-list", label: "Preparation List", icon: Package },
     { href: "/supply-list", label: "Supply List", icon: Forklift },
-    { href: "/kanban-logs", label: "Kanban Logs", icon: History },
+    // { href: "/kanban-logs", label: "Kanban Logs", icon: History },
   ]
 
   const handleLogout = async () => {
@@ -69,48 +69,50 @@ export default function Header() {
             <h1 className="text-xl font-bold text-white">E-Kanban System</h1>
           </div>
 
-          <nav className="flex space-x-1">
-            {navItems.map(({ href, label, icon: Icon }) => (
-              <Link
-                key={href}
-                href={href}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors duration-200 ${
-                  pathname === href ? "bg-blue-600 text-white" : "text-gray-300 hover:bg-gray-700 hover:text-white"
-                }`}
-              >
-                <Icon className="h-4 w-4" />
-                <span className="hidden sm:inline">{label}</span>
-              </Link>
-            ))}
-          </nav>
-
-          {user && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="flex items-center space-x-2 text-gray-300 hover:text-white">
-                  <User className="h-4 w-4" />
-                  <span className="hidden sm:inline">{user.username}</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 bg-gray-800 border-gray-700">
-                <DropdownMenuLabel className="text-gray-300">
-                  <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium">{user.username}</p>
-                    <p className={`text-xs ${getRoleColor(user.role)} capitalize`}>{user.role}</p>
-                    {user.plantName && <p className="text-xs text-gray-400">Plant: {user.plantName}</p>}
-                  </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator className="bg-gray-700" />
-                <DropdownMenuItem
-                  onClick={handleLogout}
-                  className="text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer"
+          <div className="flex items-center space-x-2">
+            <nav className="flex space-x-1">
+              {navItems.map(({ href, label, icon: Icon }) => (
+                <Link
+                  key={href}
+                  href={href}
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors duration-200 ${
+                    pathname === href ? "bg-blue-600 text-white" : "text-gray-300 hover:bg-gray-700 hover:text-white"
+                  }`}
                 >
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Log out</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
+                  <Icon className="h-4 w-4" />
+                  <span className="hidden sm:inline">{label}</span>
+                </Link>
+              ))}
+            </nav>
+
+            {user && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="border border-gray-600 rounded-full flex items-center space-x-2 text-gray-300 hover:text-white hover:bg-white/10">
+                    <User className="h-4 w-4" />
+                    <span className="hidden sm:inline">{user.username}</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56 bg-gray-800 border-gray-700">
+                  <DropdownMenuLabel className="text-gray-300">
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium">{user.username}</p>
+                      <p className={`text-xs ${getRoleColor(user.role)} capitalize`}>{user.role}</p>
+                      {user.plantName && <p className="text-xs text-gray-400">Plant: {user.plantName}</p>}
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator className="bg-gray-700" />
+                  <DropdownMenuItem
+                    onClick={handleLogout}
+                    className="text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer"
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Log out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </div>
         </div>
       </div>
     </header>

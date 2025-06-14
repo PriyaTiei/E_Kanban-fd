@@ -118,38 +118,41 @@ export default function KanbanLogsPage() {
                       </div>
                       {getStatusBadge(log)}
                     </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                      <div>
-                        <span className="text-gray-400">Part:</span>
-                        <span className="ml-2 text-white">{log.partName}</span>
-                      </div>
-                      <div>
-                        <span className="text-gray-400">Plant:</span>
-                        <span className="ml-2 text-white">{log.plantName || "N/A"}</span>
-                      </div>
-                      <div>
-                        <span className="text-gray-400">Requested:</span>
-                        <span className="ml-2 text-white">{new Date(log.requestedAt).toLocaleString()}</span>
-                      </div>
-                    </div>
-
-                    {log.acknowledgedByLogistics && (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                        <div>
-                          <span className="text-gray-400">Acknowledged:</span>
-                          <span className="ml-2 text-blue-400">
-                            {log.acknowledgedAt ? new Date(log.acknowledgedAt).toLocaleString() : "Yes"}
-                          </span>
-                        </div>
-                        {log.fulfilled && log.fulfilledAt && (
+                    <div className="flex items-center space-x-4 justify-between">
+                      <div className="flex flex-col gap-4 text-sm">
+                        <div className="flex items-end gap-4">
                           <div>
-                            <span className="text-gray-400">Fulfilled:</span>
-                            <span className="ml-2 text-green-400">{new Date(log.fulfilledAt).toLocaleString()}</span>
+                            <span className="text-gray-400">Part:</span>
+                            <span className="ml-2 text-white">{log.partName}</span>
                           </div>
-                        )}
+                          <div>
+                            <span className="text-gray-400">Plant:</span>
+                            <span className="ml-2 text-white">{log.plantName || "N/A"}</span>
+                          </div>
+                        </div>
+                        <div>
+                          <span className="text-gray-400">Requested:</span>
+                          <span className="ml-2 text-white">{new Date(log.requestedAt).toLocaleString()}</span>
+                        </div>
                       </div>
-                    )}
+
+                      {log.acknowledgedByLogistics && (
+                        <div className="flex flex-col items-end gap-4 text-sm">
+                          <div>
+                            <span className="text-gray-400">Acknowledged:</span>
+                            <span className="ml-2 text-blue-400">
+                              {log.acknowledgedAt ? new Date(log.acknowledgedAt).toLocaleString() : "Yes"}
+                            </span>
+                          </div>
+                          {log.fulfilled && log.fulfilledAt && (
+                            <div>
+                              <span className="text-gray-400">Fulfilled:</span>
+                              <span className="ml-2 text-green-400">{new Date(log.fulfilledAt).toLocaleString()}</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </CardContent>
