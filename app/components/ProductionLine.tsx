@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { fetchStationParts, fetchProductEntryLogs, simulateSensorTrigger, fetchPreparationKanbansCount, fetchSupplyKanbansCount, fetchStations } from "../lib/api"
+import { fetchStationParts, fetchProductEntryLogs, simulateGDSensorTrigger, fetchPreparationKanbansCount, fetchSupplyKanbansCount, fetchStations } from "../lib/api"
 import StationCard from "./StationCard"
 import { RefreshCw, Activity, Computer } from "lucide-react"
 import { ProductEntryLog, Station, StationPart, StationsCurrentStatus } from "../lib/types"
@@ -89,7 +89,7 @@ export default function ProductionLine() {
     }
 
     try{
-      const response =  await simulateSensorTrigger(simulatedProductEntry);
+      const response =  await simulateGDSensorTrigger(simulatedProductEntry);
       if (response) {
         console.log("Product entry log simulated successfully")
         loadData() // Reload data after simulation

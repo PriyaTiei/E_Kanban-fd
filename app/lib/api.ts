@@ -159,9 +159,9 @@ export async function fetchParts(): Promise<any[]> {
   }
 }
 
-export async function simulateSensorTrigger(product:{variant: number}): Promise<boolean> {
+export async function simulateGDSensorTrigger(product:{variant: number}): Promise<boolean> {
   try {
-    const response = await fetch(`${API_BASE}/sensor-trigger`, {
+    const response = await fetch(`${API_BASE}/sensor-trigger/gd`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(product),
