@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Check, X, Loader2, History } from "lucide-react"
+import { Check, X, Loader2, History, Snowflake, Play } from "lucide-react"
 import Link from "next/link"
 import type { KanbanItem, KanbanModifyDetails } from "../lib/types"
 import { useToast } from "@/hooks/use-toast"
@@ -18,18 +18,74 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "../contexts/AuthContext"
+import { useSearchParams, useRouter } from "next/navigation"
+import { freezeProcess, unfreezeProcess } from "../lib/api"
 
 interface KanbanTableProps {
   data: KanbanItem[]
   onUpdate: (updateKanban: KanbanModifyDetails) => Promise<boolean>
   onDelete: (deleteKanban: KanbanModifyDetails) => Promise<boolean>
   title: string
+  onRefresh?: () => void
 }
 
-export default function KanbanTable({ data, onUpdate, onDelete, title }: KanbanTableProps) {
+export default function KanbanTable({ data, onUpdate, onDelete, title, onRefresh }: KanbanTableProps) {
   const { user } = useAuth()
   const [loading, setLoading] = useState<{ [key: string]: "update" | "delete" | null }>({})
+  const [freezeLoading, setFreezeLoading] = useState(false)
   const { toast } = useToast()
+  const searchParams = useSearchParams()
+  const router = useRouter()
+
+  const selectedProcess = searchParams.get("process") ? Number.parseInt(searchParams.get("process")!) : null
+  const isPreparationSheet = title === "Preparation List"
+
+  // Get unique processes from data
+  const processes = [...new Set(data.map((item) => item.process))].sort((a, b) => a - b)
+
+  // Check if current process is frozen (from data)
+  const isFrozen = selectedProcess && data.length > 0 ? data[0].frozenData === true : false
+
+  const handleProcessFilter = (process: number | null) => {
+    const params = new URLSearchParams(searchParams.toString())
+    if (process) {
+      params.set("process", process.toString())
+    } else {
+      params.delete("process")
+    }
+    router.push(`?${params.toString()}`)
+  }
+
+  const handleFreezeToggle = async () => {
+    if (!selectedProcess) return
+
+    setFreezeLoading(true)
+    try {
+      const result = isFrozen ? await unfreezeProcess(selectedProcess) : await freezeProcess(selectedProcess)
+
+      if (result.status === 200) {
+        toast({
+          title: isFrozen ? "Process Unfrozen" : "Process Frozen",
+          description: `Process ${selectedProcess} has been ${isFrozen ? "unfrozen" : "frozen"} successfully.`,
+        })
+        onRefresh?.()
+      } else {
+        toast({
+          title: "Action Failed",
+          description: result.error || `Failed to ${isFrozen ? "unfreeze" : "freeze"} process.`,
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: `An error occurred while ${isFrozen ? "unfreezing" : "freezing"} the process.`,
+        variant: "destructive",
+      })
+    } finally {
+      setFreezeLoading(false)
+    }
+  }
 
   const handleAction = async (
     plantId: number,
@@ -52,8 +108,7 @@ export default function KanbanTable({ data, onUpdate, onDelete, title }: KanbanT
           title: action === "update" ? "Kanban Updated" : "Kanban Deleted",
           description: `Kanban item has been successfully ${action === "update" ? "marked as done" : "rejected"}.`,
         })
-        // Refresh the page or update the data
-        window.location.reload()
+        onRefresh?.()
       } else {
         toast({
           title: "Action Failed",
@@ -75,19 +130,72 @@ export default function KanbanTable({ data, onUpdate, onDelete, title }: KanbanT
 
   if (!data || data.length === 0) {
     return (
-      <div className="card">
+      <div className={`card ${isFrozen && isPreparationSheet ? "border-blue-500" : ""}`}>
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold">{title}</h2>
-          <Link href="/kanban-logs">
-            <Button
-              variant="outline"
-              className="flex items-center space-x-2 border-gray-600 text-gray-300 hover:bg-gray-700"
-            >
-              <History className="h-4 w-4" />
-              <span>View Logs</span>
-            </Button>
-          </Link>
+          <h2 className={`text-2xl font-bold ${isFrozen && isPreparationSheet ? "text-blue-400" : ""}`}>
+            {title} {isFrozen && isPreparationSheet && <Snowflake className="inline h-5 w-5 ml-2" />}
+          </h2>
+          <div className="flex items-center space-x-2">
+            {isPreparationSheet && selectedProcess && (
+              <Button
+                onClick={handleFreezeToggle}
+                disabled={freezeLoading}
+                className={`flex items-center space-x-2 ${
+                  isFrozen ? "bg-orange-600 hover:bg-orange-700 text-white" : "bg-blue-600 hover:bg-blue-700 text-white"
+                }`}
+              >
+                {freezeLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : isFrozen ? (
+                  <Play className="h-4 w-4" />
+                ) : (
+                  <Snowflake className="h-4 w-4" />
+                )}
+                <span>{isFrozen ? "Unfreeze" : "Freeze"} List</span>
+              </Button>
+            )}
+            <Link href="/kanban-logs">
+              <Button
+                variant="outline"
+                className="flex items-center space-x-2 border-gray-600 text-gray-300 hover:bg-gray-700"
+              >
+                <History className="h-4 w-4" />
+                <span>View Logs</span>
+              </Button>
+            </Link>
+          </div>
         </div>
+
+        {/* Process Filter Buttons */}
+        {processes.length > 0 && (
+          <div className="mb-6">
+            <div className="text-sm text-gray-400 mb-2">Process:</div>
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => handleProcessFilter(null)}
+                className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                  !selectedProcess ? "bg-blue-600 text-white" : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                }`}
+              >
+                All
+              </button>
+              {processes.map((process) => (
+                <button
+                  key={process}
+                  onClick={() => handleProcessFilter(process)}
+                  className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                    selectedProcess === process
+                      ? "bg-blue-600 text-white"
+                      : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                  }`}
+                >
+                  {process}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="text-center py-8 text-gray-400">No data available</div>
       </div>
     )
@@ -103,7 +211,8 @@ export default function KanbanTable({ data, onUpdate, onDelete, title }: KanbanT
       "partId",
       "plantId",
       "productId",
-      "productName"
+      "productName",
+      "frozenData",
     ]
     if (title === "Preparation List") {
       return ![...commonFilters, "acknowledgedAt"].includes(key)
@@ -112,27 +221,78 @@ export default function KanbanTable({ data, onUpdate, onDelete, title }: KanbanT
   }) as Partial<keyof KanbanItem>[]
 
   return (
-    <div className="card">
+    <div className={`card ${isFrozen && isPreparationSheet ? "border-blue-500" : ""}`}>
       <div className="flex items-baseline justify-between mb-6">
         <div>
-          <h2 className="text-2xl font-bold">{title}</h2>
+          <h2 className={`text-2xl font-bold ${isFrozen && isPreparationSheet ? "text-blue-400" : ""}`}>
+            {title} {isFrozen && isPreparationSheet && <Snowflake className="inline h-5 w-5 ml-2" />}
+          </h2>
           <div className="text-sm text-gray-400 mt-1">
             Total <span className="text-white">{data.length}</span> {data.length === 1 ? "kanban" : "kanbans"} pending
           </div>
         </div>
-        <Link href="/kanban-logs">
-          <Button
-            variant="outline"
-            className="flex items-center space-x-2 border-gray-600 text-gray-300 hover:bg-gray-700"
-          >
-            <History className="h-4 w-4" />
-            <span>View Logs</span>
-          </Button>
-        </Link>
+        <div className="flex items-center space-x-2">
+          {isPreparationSheet && selectedProcess && (
+            <Button
+              onClick={handleFreezeToggle}
+              disabled={freezeLoading}
+              className={`flex items-center space-x-2 ${
+                isFrozen ? "bg-orange-600 hover:bg-orange-700 text-white" : "bg-blue-600 hover:bg-blue-700 text-white"
+              }`}
+            >
+              {freezeLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : isFrozen ? (
+                <Play className="h-4 w-4" />
+              ) : (
+                <Snowflake className="h-4 w-4" />
+              )}
+              <span>{isFrozen ? "Unfreeze" : "Freeze"} List</span>
+            </Button>
+          )}
+          <Link href="/kanban-logs">
+            <Button
+              variant="outline"
+              className="flex items-center space-x-2 border-gray-600 text-gray-300 hover:bg-gray-700"
+            >
+              <History className="h-4 w-4" />
+              <span>View Logs</span>
+            </Button>
+          </Link>
+        </div>
       </div>
+
+      {/* Process Filter Buttons */}
+      {processes.length > 0 && (
+        <div className="mb-6">
+          <div className="text-sm text-gray-400 mb-2">Process:</div>
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() => handleProcessFilter(null)}
+              className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                !selectedProcess ? "bg-blue-600 text-white" : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+              }`}
+            >
+              All
+            </button>
+            {processes.map((process) => (
+              <button
+                key={process}
+                onClick={() => handleProcessFilter(process)}
+                className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                  selectedProcess === process ? "bg-blue-600 text-white" : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                }`}
+              >
+                {process}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="table-container">
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className={`w-full ${isFrozen && isPreparationSheet ? "border border-blue-500" : ""}`}>
             <thead className="bg-gray-700">
               <tr>
                 {columns.map((column) => (
