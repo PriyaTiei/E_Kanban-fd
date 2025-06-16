@@ -31,6 +31,9 @@ export interface KanbanItem {
   stationName: string
   partId: number
   partName: string
+  process: number
+  prepLocation?: string
+  supplyLocation?: string
   productId: number
   productName: string 
   requestedAt: string | Date // ISO timestamp
@@ -71,4 +74,10 @@ export interface User {
   role: "admin" | "logistics" | "supplier"
   plantId?: number | null
   plantName?: string | null
+}
+
+export interface ActionResponse { 
+  status: number; 
+  data?: any; 
+  error?: string 
 }

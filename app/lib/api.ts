@@ -1,4 +1,4 @@
-import { ErrorResponse, KanbanItem, KanbanModifyDetails, User } from "./types"
+import { ActionResponse, ErrorResponse, KanbanItem, KanbanModifyDetails, User } from "./types"
 
 const API_BASE = "http://10.82.126.73:3058"
 
@@ -28,9 +28,18 @@ export async function fetchProductEntryLogs(): Promise<any[]> {
   }
 }
 
-export async function fetchPreparationKanbans(): Promise<KanbanItem[]> {
+export async function fetchPreparationKanbans(queryParams?: { process?: number }): Promise<KanbanItem[]> {
   try {
-    const response = await fetch(`${API_BASE}/preparation-sheet/kanbans`, {
+    let url = new URL(`${API_BASE}/preparation-sheet/kanbans`)
+    if (queryParams) {
+      Object.entries(queryParams).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          url.searchParams.append(key, String(value))
+        }
+      })
+    }
+
+    const response = await fetch(url.toString(), {
       credentials: "include",
     })
     if (!response.ok) throw new Error("Failed to fetch preparation kanbans")
@@ -38,6 +47,56 @@ export async function fetchPreparationKanbans(): Promise<KanbanItem[]> {
   } catch (error) {
     console.error("Error fetching preparation kanbans:", error)
     return []
+  }
+}
+
+export async function freezeProcess(process: number): Promise<ActionResponse> {
+  try {
+    const response = await fetch(`${API_BASE}/preparation-sheet/kanbans/freeze`, {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ process }),
+    });
+
+    const status = response.status;
+    if (response.ok) {
+      const data = await response.json().catch(() => null);
+      return { status, data };
+    } else {
+      const errorData = await response.json().catch(() => null);
+      return { status, error: errorData?.error || "Failed to freeze process" };
+    }
+  } catch (error: any) {
+    console.error("Error freezing process:", error);
+    return { status: 500, error: error.message || "Unknown error" };
+  }
+}
+
+export async function unfreezeProcess(process: number): Promise<ActionResponse> {
+  try {
+    const response = await fetch(`${API_BASE}/preparation-sheet/kanbans/unfreeze`, {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ process }),
+    });
+
+    const status = response.status;
+    if (response.ok) {
+      const data = await response.json().catch(() => null);
+      return { status, data };
+    } else {
+      const errorData = await response.json().catch(() => null);
+      return { status, error: errorData?.error || "Failed to unfreeze process" };
+    }
+  } catch (error: any) {
+    console.error("Error unfreezing process:", error);
+    return { status: 500, error: error.message || "Unknown error" };
   }
 }
 

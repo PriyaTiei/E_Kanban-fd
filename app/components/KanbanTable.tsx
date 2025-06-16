@@ -103,6 +103,7 @@ export default function KanbanTable({ data, onUpdate, onDelete, title }: KanbanT
       "partId",
       "plantId",
       "productId",
+      "productName"
     ]
     if (title === "Preparation List") {
       return ![...commonFilters, "acknowledgedAt"].includes(key)
