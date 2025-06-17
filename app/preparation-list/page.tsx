@@ -1,13 +1,15 @@
 "use client"
 import { useSearchParams } from "next/navigation"
 import { useEffect, useState } from "react"
-import { fetchPreparationKanbans } from "../lib/api"
-import PreparationListTable from "./PreparationListTable"
+import { deletePreparationKanban, fetchPreparationKanbans, updatePreparationKanban } from "../lib/api"
 import type { KanbanItem } from "../lib/types"
 import { Suspense } from "react"
+import KanbanTable from "../components/KanbanTable"
 
 function PreparationListContent() {
   const [data, setData] = useState<KanbanItem[]>([])
+  const [processFilters, setProcessFilters] = useState<number[] | null>(null)
+  const [isFrozenData, setIsFrozenData] = useState(false)
   const [loading, setLoading] = useState(true)
   const searchParams = useSearchParams()
 
@@ -18,7 +20,9 @@ function PreparationListContent() {
     try {
       const queryParams = selectedProcess ? { process: selectedProcess } : undefined
       const result = await fetchPreparationKanbans(queryParams)
-      setData(result)
+      setProcessFilters(result?.processes || null)
+      setData(result?.kanbans || []);
+      setIsFrozenData(result?.isFrozenData || false)
     } catch (error) {
       console.error("Error fetching preparation kanbans:", error)
     } finally {
@@ -40,8 +44,19 @@ function PreparationListContent() {
     )
   }
 
-  return <PreparationListTable data={data} onRefresh={fetchData} />
-}
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <KanbanTable
+        data={data}
+        processFilters={processFilters}
+        isFrozenData={isFrozenData}
+        onUpdate={updatePreparationKanban}
+        onDelete={deletePreparationKanban}
+        title="Preparation List"
+        onRefresh={fetchData}
+      />
+    </div>
+)}
 
 export default function PreparationListTableClient() {
   return (

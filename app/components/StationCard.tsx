@@ -59,7 +59,7 @@ export default function StationCard({ station, refilledParts = new Set() }: Stat
       )}
 
       <div className="space-y-2">
-        <h4 className="text-sm font-medium text-gray-300 mb-2">Parts Inventory:</h4>
+        <h4 className="text-sm font-medium text-gray-300 mb-2">Parts Inventory</h4>
         {station.parts.length === 0 ? (
           <div className="text-gray-500 text-sm">No parts assigned</div>
         ) : (
@@ -69,7 +69,7 @@ export default function StationCard({ station, refilledParts = new Set() }: Stat
             return (
               <div
                 key={part.id}
-                className={`flex items-center justify-between p-2 rounded border ${getStatusColor(status)} ${isRefilled ? "ring-2 ring-blue-400" : ""}`}
+                className={`flex items-center justify-between p-2 border ${getStatusColor(status)} ${isRefilled ? "ring-2 ring-blue-400" : ""}`}
               >
                 <div className="flex items-center space-x-2">
                   {getStatusIcon(status)}
@@ -82,7 +82,7 @@ export default function StationCard({ station, refilledParts = new Set() }: Stat
                   <div className="text-sm font-bold">
                     {part.currentQuantity}/{part.binQuantity}
                   </div>
-                  <div className="text-xs opacity-75">Consumption: {part.consumptionPerProduct}/unit</div>
+                  <div className="text-xs opacity-75">{part.consumptionPerProduct}/unit</div>
                 </div>
               </div>
             )

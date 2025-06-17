@@ -10,7 +10,7 @@ import { Card, CardContent } from "@/components/ui/card"
 export default function KanbanLogsPage() {
   const [logs, setLogs] = useState<KanbanItem[]>([])
   const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState<"all" | "preparation" | "supply">("all")
+  const [filter, setFilter] = useState<"all" | "pending" | "preparation" | "supply">("all")
 
   const loadLogs = async () => {
     setLoading(true)
@@ -30,8 +30,15 @@ export default function KanbanLogsPage() {
 
   const filteredLogs = logs.filter((log) => {
     if (filter === "all") return true
-    // You can add logic here to differentiate between preparation and supply logs
-    // For now, we'll show all logs
+    if (filter === "pending") {
+      return log.acknowledgedByLogistics === false && log.fulfilled === false
+    }
+    if (filter === "preparation") {
+      return log.acknowledgedByLogistics === true && log.fulfilled === false
+    }
+    if (filter === "supply") {
+      return log.fulfilled === true
+    }
     return true
   })
 
@@ -74,6 +81,7 @@ export default function KanbanLogsPage() {
               className="bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 text-sm"
             >
               <option value="all">All Logs</option>
+              <option value="pending">Pending</option>
               <option value="preparation">Preparation</option>
               <option value="supply">Supply</option>
             </select>
@@ -107,10 +115,10 @@ export default function KanbanLogsPage() {
                   <div className="flex-1 space-y-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-4">
-                        <div className="flex items-center space-x-2">
+                        {/* <div className="flex items-center space-x-2">
                           <Package className="h-4 w-4 text-blue-400" />
                           <span className="font-medium text-white">Product: {log.productName}</span>
-                        </div>
+                        </div> */}
                         <div className="flex items-center space-x-2">
                           <MapPin className="h-4 w-4 text-green-400" />
                           <span className="text-gray-300">{log.stationName}</span>

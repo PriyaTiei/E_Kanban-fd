@@ -23,16 +23,19 @@ import { freezeProcess, unfreezeProcess } from "../lib/api"
 
 interface KanbanTableProps {
   data: KanbanItem[]
+  processFilters: number[] | null
+  isFrozenData?: boolean
   onUpdate: (updateKanban: KanbanModifyDetails) => Promise<boolean>
   onDelete: (deleteKanban: KanbanModifyDetails) => Promise<boolean>
   title: string
   onRefresh?: () => void
 }
 
-export default function KanbanTable({ data, onUpdate, onDelete, title, onRefresh }: KanbanTableProps) {
+export default function KanbanTable({ data, processFilters, isFrozenData, onUpdate, onDelete, title, onRefresh }: KanbanTableProps) {
   const { user } = useAuth()
-  const [loading, setLoading] = useState<{ [key: string]: "update" | "delete" | null }>({})
+  const [loading, setLoading] = useState<{ [key: number]: "update" | "delete" | null }>({})
   const [freezeLoading, setFreezeLoading] = useState(false)
+  // const [isFrozen, setIsFrozen] = useState(isFrozenData === true || false)
   const { toast } = useToast()
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -40,11 +43,8 @@ export default function KanbanTable({ data, onUpdate, onDelete, title, onRefresh
   const selectedProcess = searchParams.get("process") ? Number.parseInt(searchParams.get("process")!) : null
   const isPreparationSheet = title === "Preparation List"
 
-  // Get unique processes from data
-  const processes = [...new Set(data.map((item) => item.process))].sort((a, b) => a - b)
-
   // Check if current process is frozen (from data)
-  const isFrozen = selectedProcess && data.length > 0 ? data[0].frozenData === true : false
+  const isFrozen = selectedProcess && data.length > 0 ? isFrozenData === true : false
 
   const handleProcessFilter = (process: number | null) => {
     const params = new URLSearchParams(searchParams.toString())
@@ -57,6 +57,8 @@ export default function KanbanTable({ data, onUpdate, onDelete, title, onRefresh
   }
 
   const handleFreezeToggle = async () => {
+    console.log(`isFrozen: ${isFrozen}, isFrozenData: ${isFrozenData}`);
+    
     if (!selectedProcess) return
 
     setFreezeLoading(true)
@@ -88,18 +90,15 @@ export default function KanbanTable({ data, onUpdate, onDelete, title, onRefresh
   }
 
   const handleAction = async (
-    plantId: number,
-    stationId: number,
-    productId: number,
-    partId: number,
+    kanbanId: number,
     action: "update" | "delete",
   ) => {
-    console.log(`Handling action: ${action} for stationId: ${stationId}, partId: ${partId}, productId: ${productId}`)
+    console.log(`Handling action: ${action} for kanbanId: ${kanbanId}`)
 
-    setLoading((prev) => ({ ...prev, [`${stationId}-${partId}-${productId}`]: action }))
+    setLoading((prev) => ({ ...prev, [kanbanId]: action }))
 
     try {
-      const modifyDetails = { plantId: plantId, stationId: stationId, partId: partId, productId: productId }
+      const modifyDetails = { kanbanId: kanbanId }
       console.log(`Attempting to ${action} kanban item:`, modifyDetails)
 
       const success = action === "update" ? await onUpdate(modifyDetails) : await onDelete(modifyDetails)
@@ -124,7 +123,7 @@ export default function KanbanTable({ data, onUpdate, onDelete, title, onRefresh
         variant: "destructive",
       })
     } finally {
-      setLoading((prev) => ({ ...prev, [`${stationId}-${partId}-${productId}`]: null }))
+      setLoading((prev) => ({ ...prev, [kanbanId]: null }))
     }
   }
 
@@ -167,7 +166,7 @@ export default function KanbanTable({ data, onUpdate, onDelete, title, onRefresh
         </div>
 
         {/* Process Filter Buttons */}
-        {processes.length > 0 && (
+        {processFilters && processFilters.length > 0 && (
           <div className="mb-6">
             <div className="text-sm text-gray-400 mb-2">Process:</div>
             <div className="flex flex-wrap gap-2">
@@ -179,7 +178,7 @@ export default function KanbanTable({ data, onUpdate, onDelete, title, onRefresh
               >
                 All
               </button>
-              {processes.map((process) => (
+              {processFilters.map((process) => (
                 <button
                   key={process}
                   onClick={() => handleProcessFilter(process)}
@@ -221,80 +220,86 @@ export default function KanbanTable({ data, onUpdate, onDelete, title, onRefresh
   }) as Partial<keyof KanbanItem>[]
 
   return (
-    <div className={`card ${isFrozen && isPreparationSheet ? "border-blue-500" : ""}`}>
+    <div className={`card`}>
       <div className="flex items-baseline justify-between mb-6">
         <div>
           <h2 className={`text-2xl font-bold ${isFrozen && isPreparationSheet ? "text-blue-400" : ""}`}>
-            {title} {isFrozen && isPreparationSheet && <Snowflake className="inline h-5 w-5 ml-2" />}
+            {title} {isFrozen && isPreparationSheet && <Snowflake className="inline h-5 w-5 ml-1" />}
           </h2>
           <div className="text-sm text-gray-400 mt-1">
             Total <span className="text-white">{data.length}</span> {data.length === 1 ? "kanban" : "kanbans"} pending
           </div>
         </div>
-        <div className="flex items-center space-x-2">
-          {isPreparationSheet && selectedProcess && (
-            <Button
-              onClick={handleFreezeToggle}
-              disabled={freezeLoading}
-              className={`flex items-center space-x-2 ${
-                isFrozen ? "bg-orange-600 hover:bg-orange-700 text-white" : "bg-blue-600 hover:bg-blue-700 text-white"
-              }`}
-            >
-              {freezeLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : isFrozen ? (
-                <Play className="h-4 w-4" />
-              ) : (
-                <Snowflake className="h-4 w-4" />
-              )}
-              <span>{isFrozen ? "Unfreeze" : "Freeze"} List</span>
-            </Button>
-          )}
+        <div className="flex flex-col items-center space-x-2">
           <Link href="/kanban-logs">
             <Button
               variant="outline"
-              className="flex items-center space-x-2 border-gray-600 text-gray-300 hover:bg-gray-700"
-            >
+              className="flex items-center gap-2 border-gray-600 text-gray-300 hover:bg-gray-700"
+              >
               <History className="h-4 w-4" />
               <span>View Logs</span>
             </Button>
           </Link>
+          
         </div>
       </div>
 
       {/* Process Filter Buttons */}
-      {processes.length > 0 && (
+      {processFilters && processFilters.length > 0 && (
         <div className="mb-6">
-          <div className="text-sm text-gray-400 mb-2">Process:</div>
-          <div className="flex flex-wrap gap-2">
-            <button
-              onClick={() => handleProcessFilter(null)}
-              className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
-                !selectedProcess ? "bg-blue-600 text-white" : "bg-gray-700 text-gray-300 hover:bg-gray-600"
-              }`}
-            >
-              All
-            </button>
-            {processes.map((process) => (
+          <div className="text-sm text-gray-400 mb-2">Process</div>
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex flex-wrap gap-2">
               <button
-                key={process}
-                onClick={() => handleProcessFilter(process)}
-                className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
-                  selectedProcess === process ? "bg-blue-600 text-white" : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                onClick={() => handleProcessFilter(null)}
+                className={`px-3 py-1 text-sm font-medium transition-colors ${
+                  !selectedProcess ? "bg-blue-600 text-white" : "bg-gray-700 text-gray-300 hover:bg-gray-600"
                 }`}
               >
-                {process}
+                All
               </button>
-            ))}
+              {processFilters.map((process) => (
+                <button
+                  key={process}
+                  onClick={() => handleProcessFilter(process)}
+                  className={`px-3 py-1 text-sm font-medium transition-colors ${
+                    selectedProcess === process ? "bg-blue-600 text-white" : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                  }`}
+                >
+                  {process}
+                </button>
+              ))}
+            </div>
+            {isPreparationSheet && selectedProcess && (
+              <Button
+                onClick={handleFreezeToggle}
+                disabled={freezeLoading}
+                className={`flex items-center gap-2 ${
+                  isFrozen ? "bg-orange-600 hover:bg-orange-700 text-white" : "bg-blue-600 hover:bg-blue-700 text-white"
+                }`}
+              >
+                {freezeLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : isFrozen ? (
+                  <Play className="h-4 w-4" />
+                ) : (
+                  <Snowflake className="h-4 w-4" />
+                )}
+                <span>{isFrozen ? "Unfreeze" : "Freeze"} List</span>
+              </Button>
+            )}
           </div>
         </div>
       )}
 
       <div className="table-container">
         <div className="overflow-x-auto">
-          <table className={`w-full ${isFrozen && isPreparationSheet ? "border border-blue-500" : ""}`}>
+          <table className={`w-full ${isFrozen && isPreparationSheet ? "border-2 border-blue-400" : ""}`}>
             <thead className="bg-gray-700">
               <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                  SL. No.
+                </th>
                 {columns.map((column) => (
                   <th
                     key={column}
@@ -311,6 +316,9 @@ export default function KanbanTable({ data, onUpdate, onDelete, title, onRefresh
             <tbody className="divide-y divide-gray-700">
               {data.map((item, index) => (
                 <tr key={item.id || index} className="hover:bg-gray-750">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                    {index + 1}
+                  </td>
                   {columns.map((column) => (
                     <td key={column} className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
                       {typeof item[column] === "string" &&
@@ -323,13 +331,13 @@ export default function KanbanTable({ data, onUpdate, onDelete, title, onRefresh
                     <div className="flex justify-center space-x-2">
                       <button
                         onClick={() =>
-                          handleAction(item.plantId, item.stationId, item.productId, item.partId, "update")
+                          handleAction(item.id, "update")
                         }
-                        disabled={loading[`${item.stationId}-${item.partId}-${item.productId}`] != null}
+                        disabled={loading[item.id] != null}
                         className="btn-success p-0 flex items-center justify-center w-8 h-8"
                         title="Mark as Done"
                       >
-                        {loading[`${item.stationId}-${item.partId}-${item.productId}`] === "update" ? (
+                        {loading[item.id] === "update" ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
                         ) : (
                           <Check className="h-4 w-4" />
@@ -340,11 +348,11 @@ export default function KanbanTable({ data, onUpdate, onDelete, title, onRefresh
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
                             <button
-                              disabled={loading[`${item.stationId}-${item.partId}-${item.productId}`] != null}
+                              disabled={loading[item.id] != null}
                               className="btn-danger p-0 flex items-center justify-center w-8 h-8"
                               title="Reject"
                             >
-                              {loading[`${item.stationId}-${item.partId}-${item.productId}`] === "delete" ? (
+                              {loading[item.id] === "delete" ? (
                                 <Loader2 className="h-4 w-4 animate-spin" />
                               ) : (
                                 <X className="h-4 w-4" />
@@ -365,7 +373,7 @@ export default function KanbanTable({ data, onUpdate, onDelete, title, onRefresh
                               </AlertDialogCancel>
                               <AlertDialogAction
                                 onClick={() =>
-                                  handleAction(item.plantId, item.stationId, item.productId, item.partId, "delete")
+                                  handleAction(item.id, "delete")
                                 }
                                 className="bg-red-600 hover:bg-red-700 text-white"
                               >
@@ -376,7 +384,7 @@ export default function KanbanTable({ data, onUpdate, onDelete, title, onRefresh
                         </AlertDialog>
                       ) : (
                         <button
-                          disabled={loading[`${item.stationId}-${item.partId}-${item.productId}`] != null}
+                          disabled={loading[item.id] != null}
                           className="btn-danger p-0 flex items-center justify-center w-8 h-8"
                           title="Reject"
                           onClick={() =>

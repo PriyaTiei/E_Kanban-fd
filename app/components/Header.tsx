@@ -15,6 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
+import Image from "next/image"
 
 export default function Header() {
   const pathname = usePathname()
@@ -64,9 +65,16 @@ export default function Header() {
     <header className="bg-gray-800 border-b border-gray-700 sticky top-0 z-50">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
-          <div className="flex items-center space-x-2">
-            <KanbanSquare className="h-8 w-8 text-blue-500" />
-            <h1 className="text-xl font-bold text-white">E-Kanban System</h1>
+          <div className="flex items-center space-x-1">
+            <Image
+              src="/images/Tiei_logo.png"
+              alt="TIEI logo"
+              width={90}
+              height={28}
+              className="h-20 w-auto object-cover object-left"
+              priority
+            />
+            <h1 className="hidden lg:inline text-xl font-bold text-white tracking-wide">E-Kanban System</h1>
           </div>
 
           <div className="flex items-center space-x-2">
@@ -80,7 +88,7 @@ export default function Header() {
                   }`}
                 >
                   <Icon className="h-4 w-4" />
-                  <span className="hidden sm:inline">{label}</span>
+                  <span className="hidden md:inline">{label}</span>
                 </Link>
               ))}
             </nav>

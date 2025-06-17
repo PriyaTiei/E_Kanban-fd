@@ -44,6 +44,12 @@ export interface KanbanItem {
   frozenData?: boolean
 }
 
+export interface PreparationKanbanResponse {
+  kanbans: KanbanItem[]
+  processes: number[]
+  isFrozenData: boolean
+}
+
 export interface Station {
   id: number
   name: string
@@ -59,10 +65,7 @@ export interface StationsCurrentStatus {
 }
 
 export interface KanbanModifyDetails {
-  plantId:number 
-  stationId:number 
-  partId:number 
-  productId: number
+  kanbanId:number 
 }
 
 export interface ErrorResponse {

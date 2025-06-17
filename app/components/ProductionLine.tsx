@@ -13,8 +13,10 @@ import StationCard from "./StationCard"
 import { RefreshCw, Activity, Computer } from "lucide-react"
 import type { ProductEntryLog, Station, StationPart, StationsCurrentStatus } from "../lib/types"
 import { useToast } from "@/hooks/use-toast"
+import { useAuth } from "../contexts/AuthContext"
 
 export default function ProductionLine() {
+  const { user } = useAuth()
   const [stations, setStations] = useState<StationsCurrentStatus[]>([])
   const [kanbansToPrepare, setKanbansToPrepare] = useState<null | number>(null)
   const [kanbansToSupply, setKanbansToSupply] = useState<null | number>(null)
@@ -175,29 +177,33 @@ export default function ProductionLine() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-8">
-        <div className="flex items-center space-x-3">
-          <Activity className="h-8 w-8 text-blue-500" />
-          <h1 className="text-3xl font-bold text-white">Production Line Status</h1>
-        </div>
-
-        <div className="flex items-center space-x-4">
-          <button onClick={handleSimulate} className="btn-primary flex items-center space-x-2">
-            <Computer className="h-4 w-4" />
-            <span className="hidden sm:inline">Simulate</span>
-          </button>
-          <div className="text-sm inline-flex items-center gap-1 text-gray-400">
-            Last updated:
-            {lastUpdate ? (
-              <span>{lastUpdate?.toLocaleTimeString()}</span>
-            ) : (
-              <div className="h-4 w-20 bg-gray-600 rounded animate-pulse" />
-            )}
+      <div className="flex flex-col gap-2 mb-4 md:mb-6">
+        <div className="flex flex-col md:flex-row gap-8 items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <Activity className="h-8 w-8 text-blue-500" />
+            <h1 className="text-3xl font-bold text-white">Production Line Status</h1>
           </div>
-          <button onClick={loadData} disabled={loading} className="btn-primary flex items-center space-x-2">
-            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-            <span className="hidden sm:inline">Refresh</span>
-          </button>
+
+          <div className="w-full md:w-fit flex justify-between md:justify-end items-center space-x-4">
+            {user?.role === "admin" &&
+              <button onClick={handleSimulate} className="btn-primary flex items-center space-x-2">
+                <Computer className="h-4 w-4" />
+                <span className="text-sm md:text-base">Simulate</span>
+              </button>
+            }
+            <button onClick={loadData} disabled={loading} className="btn-primary flex items-center space-x-2">
+              <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+              <span className="text-sm md:text-base">Refresh</span>
+            </button>
+          </div>
+        </div>
+        <div className="text-xs md:text-sm inline-flex self-end items-center gap-1 text-gray-400">
+          Last updated:
+          {lastUpdate ? (
+            <span>{lastUpdate?.toLocaleTimeString()}</span>
+          ) : (
+            <div className="h-4 w-20 bg-gray-600 rounded animate-pulse" />
+          )}
         </div>
       </div>
 
@@ -243,7 +249,7 @@ export default function ProductionLine() {
               </div>
               <div className="bg-gray-700 flex flex-col gap-4 rounded-lg p-4">
                 <div className="flex items-center gap-6">
-                  <div className="text-2xl font-bold text-yellow-400">
+                  <div className="text-2xl font-bold text-red-400">
                     {stations.reduce(
                       (acc, station) =>
                         acc +
@@ -257,7 +263,7 @@ export default function ProductionLine() {
                         station.parts.some((part: any) => part.currentQuantity / part.binQuantity <= 0.2),
                       )
                       .map((station) => (
-                        <div key={station.id} className="w-max p-2 border border-yellow-300 text-xs text-yellow-300">
+                        <div key={station.id} className="w-max p-2 border border-red-300 text-xs text-red-300">
                           {station.name.split(" ")[1]}
                         </div>
                       ))}

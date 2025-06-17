@@ -1,13 +1,14 @@
 "use client"
 import { Suspense } from "react"
 import { useEffect, useState } from "react"
-import { fetchSupplyKanbans } from "../lib/api"
-import SupplyListTable from "./SupplyListTable"
+import { deleteSupplyKanban, fetchSupplyKanbans, updateSupplyKanban } from "../lib/api"
 import type { KanbanItem } from "../lib/types"
 import { useSearchParams } from "next/navigation"
+import KanbanTable from "../components/KanbanTable"
 
 function SupplyListContent() {
   const [data, setData] = useState<KanbanItem[]>([])
+  const [processFilters, setProcessFilters] = useState<number[] | null>(null)
   const [loading, setLoading] = useState(true)
   const searchParams = useSearchParams()
 
@@ -16,9 +17,11 @@ function SupplyListContent() {
   const fetchData = async () => {
     setLoading(true)
     try {
-      // Note: Supply kanbans don't have process filtering in the API yet
-      // but we can filter client-side for now
+      // Note: Supply kanbans don't have process filtering in the API
+      // So, we are filtering client-side
       const result = await fetchSupplyKanbans()
+      const processes = [...new Set(result?.map((item) => item.process))].sort((a, b) => a - b)
+      setProcessFilters(processes)
       const filteredData = selectedProcess ? result.filter((item) => item.process === selectedProcess) : result
       setData(filteredData)
     } catch (error) {
@@ -42,7 +45,18 @@ function SupplyListContent() {
     )
   }
 
-  return <SupplyListTable data={data} onRefresh={fetchData} />
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <KanbanTable
+        data={data}
+        processFilters={processFilters}
+        onUpdate={updateSupplyKanban}
+        onDelete={deleteSupplyKanban}
+        title="Supply List"
+        onRefresh={fetchData}
+      />
+    </div>
+  )
 }
 
 export default function SupplyListPage() {

@@ -1,4 +1,4 @@
-import { ActionResponse, ErrorResponse, KanbanItem, KanbanModifyDetails, User } from "./types"
+import { ActionResponse, ErrorResponse, KanbanItem, KanbanModifyDetails, PreparationKanbanResponse, User } from "./types"
 
 const API_BASE = "http://10.82.126.73:3058"
 
@@ -28,7 +28,7 @@ export async function fetchProductEntryLogs(): Promise<any[]> {
   }
 }
 
-export async function fetchPreparationKanbans(queryParams?: { process?: number }): Promise<KanbanItem[]> {
+export async function fetchPreparationKanbans(queryParams?: { process?: number }): Promise<PreparationKanbanResponse | null> {
   try {
     let url = new URL(`${API_BASE}/preparation-sheet/kanbans`)
     if (queryParams) {
@@ -46,7 +46,7 @@ export async function fetchPreparationKanbans(queryParams?: { process?: number }
     return await response.json()
   } catch (error) {
     console.error("Error fetching preparation kanbans:", error)
-    return []
+    return null
   }
 }
 
@@ -161,10 +161,7 @@ export async function updatePreparationKanban(updateKanban:KanbanModifyDetails):
 export async function deletePreparationKanban(deleteKanban: KanbanModifyDetails): Promise<boolean> {
   try {
     const params = new URLSearchParams({
-      plantId: String(deleteKanban.plantId),
-      stationId: String(deleteKanban.stationId),
-      partId: String(deleteKanban.partId),
-      productId: String(deleteKanban.productId),
+      kanbanId: String(deleteKanban.kanbanId),
     }).toString();
 
     const response = await fetch(`${API_BASE}/preparation-sheet/kanban?${params}`, {
@@ -197,10 +194,7 @@ export async function updateSupplyKanban(updateKanban:KanbanModifyDetails): Prom
 export async function deleteSupplyKanban(deleteKanban: KanbanModifyDetails): Promise<boolean> {
   try {
     const params = new URLSearchParams({
-      plantId: String(deleteKanban.plantId),
-      stationId: String(deleteKanban.stationId),
-      partId: String(deleteKanban.partId),
-      productId: String(deleteKanban.productId),
+      kanbanId: String(deleteKanban.kanbanId),
     }).toString();
 
     const response = await fetch(`${API_BASE}/supply-sheet/kanban?${params}`, {
