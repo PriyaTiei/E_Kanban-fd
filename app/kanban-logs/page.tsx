@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { fetchKanbanLogs } from "../lib/api"
 import type { KanbanLogItem } from "../lib/types"
-import { History, RefreshCw, Filter, Package, MapPin } from "lucide-react"
+import { History, RefreshCw, Filter, MapPin, Clock, CheckCircle, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 
@@ -42,42 +42,91 @@ export default function KanbanLogsPage() {
     return true
   })
 
-  const getStatusBadge = (log: KanbanLogItem) => {
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString)
+    const today = new Date()
+    const isToday = date.toDateString() === today.toDateString()
+
+    if (isToday) {
+      return `Today, ${date.toLocaleTimeString()}`
+    }
+    return date.toLocaleString()
+  }
+
+  const getStatusInfo = (log: KanbanLogItem) => {
     if (log.fulfilled) {
-      return (
-        <span className="px-2 py-1 text-xs rounded-full bg-green-900/20 text-green-400 border border-green-700">
-          Fulfilled
-        </span>
-      )
+      return {
+        status: "Fulfilled",
+        color: "text-green-400",
+        bgColor: "bg-green-900/20",
+        borderColor: "border-green-700",
+        icon: CheckCircle,
+      }
     } else if (log.acknowledgedByLogistics) {
-      return (
-        <span className="px-2 py-1 text-xs rounded-full bg-blue-900/20 text-blue-400 border border-blue-700">
-          Acknowledged
-        </span>
-      )
+      return {
+        status: "Acknowledged",
+        color: "text-blue-400",
+        bgColor: "bg-blue-900/20",
+        borderColor: "border-blue-700",
+        icon: Clock,
+      }
     } else {
-      return (
-        <span className="px-2 py-1 text-xs rounded-full bg-yellow-900/20 text-yellow-400 border border-yellow-700">
-          Pending
-        </span>
-      )
+      return {
+        status: "Pending",
+        color: "text-yellow-400",
+        bgColor: "bg-yellow-900/20",
+        borderColor: "border-yellow-700",
+        icon: AlertCircle,
+      }
     }
   }
 
+  // Group logs by date
+  const groupedLogs = filteredLogs.reduce(
+    (groups, log) => {
+      const date = new Date(log.requestedAt).toDateString()
+      if (!groups[date]) {
+        groups[date] = []
+      }
+      groups[date].push(log)
+      return groups
+    },
+    {} as Record<string, KanbanLogItem[]>,
+  )
+
+  const formatDateHeader = (dateString: string) => {
+    const date = new Date(dateString)
+    const today = new Date()
+    const yesterday = new Date(today)
+    yesterday.setDate(yesterday.getDate() - 1)
+
+    if (date.toDateString() === today.toDateString()) {
+      return "Today"
+    } else if (date.toDateString() === yesterday.toDateString()) {
+      return "Yesterday"
+    }
+    return date.toLocaleDateString("en-US", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    })
+  }
+
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-8">
+    <div className="container mx-auto px-4 py-6 md:py-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 md:mb-8 space-y-4 sm:space-y-0">
         <div className="flex items-center space-x-3">
-          <History className="h-8 w-8 text-blue-500" />
-          <h1 className="text-3xl font-bold text-white">Kanban Logs</h1>
+          <History className="h-6 w-6 md:h-8 md:w-8 text-blue-500" />
+          <h1 className="text-2xl md:text-3xl font-bold text-white">Kanban Logs</h1>
         </div>
 
-        <div className="flex items-center space-x-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
           <div className="flex items-center space-x-2">
             <Filter className="h-4 w-4 text-gray-400" />
             <select
               value={filter}
-              onChange={(e) => setFilter(e.target.value as "all" | "preparation" | "supply")}
+              onChange={(e) => setFilter(e.target.value as "all" | "pending" | "preparation" | "supply")}
               className="bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 text-sm"
             >
               <option value="all">All Logs</option>
@@ -100,72 +149,112 @@ export default function KanbanLogsPage() {
             <p className="text-gray-400">Loading kanban logs...</p>
           </div>
         </div>
-      ) : filteredLogs.length === 0 ? (
+      ) : Object.keys(groupedLogs).length === 0 ? (
         <div className="text-center py-12">
           <History className="h-16 w-16 text-gray-600 mx-auto mb-4" />
           <h3 className="text-xl font-semibold text-gray-400 mb-2">No Logs Found</h3>
           <p className="text-gray-500">No kanban logs are available at the moment.</p>
         </div>
       ) : (
-        <div className="space-y-4">
-          {filteredLogs.map((log) => (
-            <Card key={log.id} className="bg-gray-800 border-gray-700 hover:border-gray-600 transition-colors">
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-4">
-                        {/* <div className="flex items-center space-x-2">
-                          <Package className="h-4 w-4 text-blue-400" />
-                          <span className="font-medium text-white">Product: {log.productName}</span>
-                        </div> */}
-                        <div className="flex items-center space-x-2">
-                          <MapPin className="h-4 w-4 text-green-400" />
-                          <span className="text-gray-300">{log.stationName}</span>
-                        </div>
-                      </div>
-                      {getStatusBadge(log)}
-                    </div>
-                    <div className="flex items-center space-x-4 justify-between">
-                      <div className="flex flex-col gap-4 text-sm">
-                        <div className="flex items-end gap-4">
-                          <div>
-                            <span className="text-gray-400">Part:</span>
-                            <span className="ml-2 text-white">{log.partName}</span>
-                          </div>
-                          <div>
-                            <span className="text-gray-400">Plant:</span>
-                            <span className="ml-2 text-white">{log.plantName || "N/A"}</span>
-                          </div>
-                        </div>
-                        <div>
-                          <span className="text-gray-400">Requested:</span>
-                          <span className="ml-2 text-white">{new Date(log.requestedAt).toLocaleString()}</span>
-                        </div>
-                      </div>
+        <div className="space-y-8">
+          {Object.entries(groupedLogs)
+            .sort(([a], [b]) => new Date(b).getTime() - new Date(a).getTime())
+            .map(([date, dayLogs]) => (
+              <div key={date} className="space-y-4">
+                <div className="sticky top-0 md:top-16 bg-gray-900/95 backdrop-blur-sm py-2 z-10">
+                  <h2 className="text-lg font-semibold text-white border-b border-gray-700 pb-2">
+                    {formatDateHeader(date)}
+                  </h2>
+                </div>
 
-                      {log.acknowledgedByLogistics && (
-                        <div className="flex flex-col items-end gap-4 text-sm">
-                          <div>
-                            <span className="text-gray-400">Acknowledged:</span>
-                            <span className="ml-2 text-blue-400">
-                              {log.acknowledgedAt ? new Date(log.acknowledgedAt).toLocaleString() : "Yes"}
-                            </span>
-                          </div>
-                          {log.fulfilled && log.fulfilledAt && (
-                            <div>
-                              <span className="text-gray-400">Fulfilled:</span>
-                              <span className="ml-2 text-green-400">{new Date(log.fulfilledAt).toLocaleString()}</span>
+                <div className="relative">
+                  {/* Timeline line */}
+                  <div className="absolute left-4 md:left-6 top-0 bottom-0 w-0.5 bg-gray-700"></div>
+
+                  <div className="space-y-4">
+                    {dayLogs
+                      .sort((a, b) => new Date(b.requestedAt).getTime() - new Date(a.requestedAt).getTime())
+                      .map((log) => {
+                        const statusInfo = getStatusInfo(log)
+                        const StatusIcon = statusInfo.icon
+
+                        return (
+                          <div key={log.id} className="relative flex items-start space-x-4 md:space-x-6">
+                            {/* Timeline dot */}
+                            <div
+                              className={`relative z-10 flex items-center justify-center w-8 h-8 rounded-full ${statusInfo.bgColor} ${statusInfo.borderColor} border-2`}
+                            >
+                              <StatusIcon className={`h-4 w-4 ${statusInfo.color}`} />
                             </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
+
+                            {/* Content */}
+                            <div className="flex-1 min-w-0 pb-4">
+                              <Card className="bg-gray-800 border-gray-700 hover:border-gray-600 transition-colors">
+                                <CardContent className="p-4 md:p-6">
+                                  <div className="flex items-start justify-between">
+                                    <div className="flex-1 space-y-3">
+                                      <div className="flex items-center justify-between">
+                                        <div className="flex items-center space-x-4">
+                                          <div className="flex items-center space-x-2">
+                                            <MapPin className="h-4 w-4 text-green-400" />
+                                            <span className="text-gray-300">{log.stationName}</span>
+                                          </div>
+                                        </div>
+                                        <span
+                                          className={`px-2 py-1 text-xs rounded-full ${statusInfo.bgColor} ${statusInfo.color} border ${statusInfo.borderColor}`}
+                                        >
+                                          {statusInfo.status}
+                                        </span>
+                                      </div>
+                                      <div className="flex items-center space-x-4 justify-between">
+                                        <div className="flex flex-col gap-4 text-sm">
+                                          <div className="flex items-end gap-4">
+                                            <div>
+                                              <span className="text-gray-400">Part:</span>
+                                              <span className="ml-2 text-white">{log.partName}</span>
+                                            </div>
+                                            <div>
+                                              <span className="text-gray-400">Plant:</span>
+                                              <span className="ml-2 text-white">{log.plantName || "N/A"}</span>
+                                            </div>
+                                          </div>
+                                          <div>
+                                            <span className="text-gray-400">Requested:</span>
+                                            <span className="ml-2 text-white">{formatDate(log.requestedAt)}</span>
+                                          </div>
+                                        </div>
+
+                                        {log.acknowledgedByLogistics && (
+                                          <div className="flex flex-col items-end gap-4 text-sm">
+                                            <div>
+                                              <span className="text-gray-400">Acknowledged:</span>
+                                              <span className="ml-2 text-blue-400">
+                                                {log.acknowledgedAt ? formatDate(log.acknowledgedAt) : "Yes"}
+                                              </span>
+                                            </div>
+                                            {log.fulfilled && log.fulfilledAt && (
+                                              <div>
+                                                <span className="text-gray-400">Fulfilled:</span>
+                                                <span className="ml-2 text-green-400">
+                                                  {formatDate(log.fulfilledAt)}
+                                                </span>
+                                              </div>
+                                            )}
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </CardContent>
+                              </Card>
+                            </div>
+                          </div>
+                        )
+                      })}
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          ))}
+              </div>
+            ))}
         </div>
       )}
     </div>

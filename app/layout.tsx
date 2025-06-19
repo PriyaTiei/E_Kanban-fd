@@ -3,6 +3,7 @@ import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
 import Header from "./components/Header"
+import MobileSidebar from "./components/MobileSidebar"
 import Footer from "./components/Footer"
 import { AuthProvider } from "./contexts/AuthContext"
 import { Toaster } from "@/components/ui/toaster"
@@ -27,7 +28,8 @@ export default function RootLayout({
         <AuthProvider>
           <AuthWrapper>
             <Header />
-            <main className="flex-1">{children}</main>
+            <MobileSidebar />
+            <main className="flex-1 pt-0 md:pt-0">{children}</main>
             <Footer />
           </AuthWrapper>
           <Toaster />

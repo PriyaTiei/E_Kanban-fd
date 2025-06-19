@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { Factory, Forklift, KanbanSquare, Package, User, LogOut, History } from "lucide-react"
+import { Factory, Forklift, Package, User, LogOut, History } from "lucide-react"
 import { useAuth } from "../contexts/AuthContext"
 import { logoutUser } from "../lib/api"
 import { useToast } from "@/hooks/use-toast"
@@ -27,7 +27,7 @@ export default function Header() {
     { href: "/", label: "Production Line", icon: Factory },
     { href: "/preparation-list", label: "Preparation List", icon: Package },
     { href: "/supply-list", label: "Supply List", icon: Forklift },
-    // { href: "/kanban-logs", label: "Kanban Logs", icon: History },
+    { href: "/kanban-logs", label: "Kanban Logs", icon: History },
   ]
 
   const handleLogout = async () => {
@@ -62,7 +62,7 @@ export default function Header() {
   }
 
   return (
-    <header className="bg-gray-800 border-b border-gray-700 sticky top-0 z-50">
+    <header className="hidden md:block bg-gray-800 border-b border-gray-700 sticky top-0 z-50">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center space-x-1">
@@ -78,7 +78,7 @@ export default function Header() {
           </div>
 
           <div className="flex items-center space-x-2">
-            {user &&
+            {user && (
               <nav className="flex space-x-1">
                 {navItems.map(({ href, label, icon: Icon }) => (
                   <Link
@@ -89,17 +89,20 @@ export default function Header() {
                     }`}
                   >
                     <Icon className="h-4 w-4" />
-                    <span className="hidden md:inline">{label}</span>
+                    <span className="hidden lg:inline">{label}</span>
                   </Link>
                 ))}
               </nav>
-            }
+            )}
             {user && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="border border-gray-600 rounded-full flex items-center space-x-2 text-gray-300 hover:text-white hover:bg-white/10">
+                  <Button
+                    variant="ghost"
+                    className="border border-gray-600 rounded-full flex items-center space-x-2 text-gray-300 hover:text-white hover:bg-white/10"
+                  >
                     <User className="h-4 w-4" />
-                    <span className="hidden sm:inline">{user.username}</span>
+                    <span className="hidden xl:inline">{user.username}</span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56 bg-gray-800 border-gray-700">
