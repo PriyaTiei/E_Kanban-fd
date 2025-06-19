@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Check, X, Loader2, History, Snowflake, Play } from "lucide-react"
 import Link from "next/link"
 import type { KanbanItem, KanbanModifyDetails } from "../lib/types"
@@ -35,7 +35,7 @@ export default function KanbanTable({ data, processFilters, isFrozenData, onUpda
   const { user } = useAuth()
   const [loading, setLoading] = useState<{ [key: number]: "update" | "delete" | null }>({})
   const [freezeLoading, setFreezeLoading] = useState(false)
-  // const [isFrozen, setIsFrozen] = useState(isFrozenData === true || false)
+  // const [processFilter, setProcessFilter] = useState<null | number>(0)
   const { toast } = useToast()
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -48,13 +48,19 @@ export default function KanbanTable({ data, processFilters, isFrozenData, onUpda
 
   const handleProcessFilter = (process: number | null) => {
     const params = new URLSearchParams(searchParams.toString())
+    // setProcessFilter(process ?? 0)
     if (process) {
+      console.log(`Setting process filter to: ${process}`);
       params.set("process", process.toString())
     } else {
       params.delete("process")
     }
     router.push(`?${params.toString()}`)
   }
+
+  // useEffect(() => {
+  //   console.log(`Setting process filter to: ${processFilter}`);
+  // }, [processFilter]);
 
   const handleFreezeToggle = async () => {
     console.log(`isFrozen: ${isFrozen}, isFrozenData: ${isFrozenData}`);
@@ -247,7 +253,7 @@ export default function KanbanTable({ data, processFilters, isFrozenData, onUpda
       {/* Process Filter Buttons */}
       {processFilters && processFilters.length > 0 && (
         <div className="mb-6">
-          <div className="text-sm text-gray-400 mb-2">Process</div>
+          <div className="text-sm text-gray-400 mb-1">Select Process</div>
           <div className="flex items-center justify-between gap-4">
             <div className="flex flex-wrap gap-2">
               <button
@@ -308,9 +314,12 @@ export default function KanbanTable({ data, processFilters, isFrozenData, onUpda
                     {column.replace(/([A-Z])/g, " $1").replace(/^./, (str) => str.toUpperCase())}
                   </th>
                 ))}
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-300 uppercase tracking-wider">
-                  Actions
-                </th>
+                { 
+                selectedProcess !== null &&
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-300 uppercase tracking-wider">
+                    Actions
+                  </th>
+                }
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-700">
@@ -327,79 +336,82 @@ export default function KanbanTable({ data, processFilters, isFrozenData, onUpda
                         : String(item[column] ?? "-")}
                     </td>
                   ))}
-                  <td className="px-6 py-4 whitespace-nowrap text-center">
-                    <div className="flex justify-center space-x-2">
-                      <button
-                        onClick={() =>
-                          handleAction(item.id, "update")
-                        }
-                        disabled={loading[item.id] != null}
-                        className="btn-success p-0 flex items-center justify-center w-8 h-8"
-                        title="Mark as Done"
-                      >
-                        {loading[item.id] === "update" ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <Check className="h-4 w-4" />
-                        )}
-                      </button>
-
-                      {user?.role === "admin" ? (
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <button
-                              disabled={loading[item.id] != null}
-                              className="btn-danger p-0 flex items-center justify-center w-8 h-8"
-                              title="Reject"
-                            >
-                              {loading[item.id] === "delete" ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                              ) : (
-                                <X className="h-4 w-4" />
-                              )}
-                            </button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent className="bg-gray-800 border-gray-700">
-                            <AlertDialogHeader>
-                              <AlertDialogTitle className="text-white">Confirm Rejection</AlertDialogTitle>
-                              <AlertDialogDescription className="text-gray-300">
-                                Are you sure you want to reject this kanban request for <strong>{item.partName}</strong>{" "}
-                                at <strong>{item.stationName}</strong>? This action cannot be undone.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel className="bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600">
-                                Cancel
-                              </AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() =>
-                                  handleAction(item.id, "delete")
-                                }
-                                className="bg-red-600 hover:bg-red-700 text-white"
-                              >
-                                Reject
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      ) : (
+                  { 
+                  selectedProcess !== null &&
+                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                      <div className="flex justify-center space-x-2">
                         <button
-                          disabled={loading[item.id] != null}
-                          className="btn-danger p-0 flex items-center justify-center w-8 h-8"
-                          title="Reject"
                           onClick={() =>
-                            toast({
-                              title: "Not allowed",
-                              description: "You are not allowed to reject kanban requests.",
-                              variant: "destructive",
-                            })
+                            handleAction(item.id, "update")
                           }
+                          disabled={loading[item.id] != null}
+                          className="btn-success p-0 flex items-center justify-center w-8 h-8"
+                          title="Mark as Done"
                         >
-                          <X className="h-4 w-4" />
+                          {loading[item.id] === "update" ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Check className="h-4 w-4" />
+                          )}
                         </button>
-                      )}
-                    </div>
-                  </td>
+
+                        {user?.role === "admin" ? (
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <button
+                                disabled={loading[item.id] != null}
+                                className="btn-danger p-0 flex items-center justify-center w-8 h-8"
+                                title="Reject"
+                              >
+                                {loading[item.id] === "delete" ? (
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                  <X className="h-4 w-4" />
+                                )}
+                              </button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent className="bg-gray-800 border-gray-700">
+                              <AlertDialogHeader>
+                                <AlertDialogTitle className="text-white">Confirm Rejection</AlertDialogTitle>
+                                <AlertDialogDescription className="text-gray-300">
+                                  Are you sure you want to reject this kanban request for <strong>{item.partName}</strong>{" "}
+                                  at <strong>{item.stationName}</strong>? This action cannot be undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel className="bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600">
+                                  Cancel
+                                </AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() =>
+                                    handleAction(item.id, "delete")
+                                  }
+                                  className="bg-red-600 hover:bg-red-700 text-white"
+                                >
+                                  Reject
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        ) : (
+                          <button
+                            disabled={loading[item.id] != null}
+                            className="btn-danger p-0 flex items-center justify-center w-8 h-8"
+                            title="Reject"
+                            onClick={() =>
+                              toast({
+                                title: "Not allowed",
+                                description: "You are not allowed to reject kanban requests.",
+                                variant: "destructive",
+                              })
+                            }
+                          >
+                            <X className="h-4 w-4" />
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  }
                 </tr>
               ))}
             </tbody>

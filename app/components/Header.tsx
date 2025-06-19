@@ -78,21 +78,22 @@ export default function Header() {
           </div>
 
           <div className="flex items-center space-x-2">
-            <nav className="flex space-x-1">
-              {navItems.map(({ href, label, icon: Icon }) => (
-                <Link
-                  key={href}
-                  href={href}
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors duration-200 ${
-                    pathname === href ? "bg-blue-600 text-white" : "text-gray-300 hover:bg-gray-700 hover:text-white"
-                  }`}
-                >
-                  <Icon className="h-4 w-4" />
-                  <span className="hidden md:inline">{label}</span>
-                </Link>
-              ))}
-            </nav>
-
+            {user &&
+              <nav className="flex space-x-1">
+                {navItems.map(({ href, label, icon: Icon }) => (
+                  <Link
+                    key={href}
+                    href={href}
+                    className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors duration-200 ${
+                      pathname === href ? "bg-blue-600 text-white" : "text-gray-300 hover:bg-gray-700 hover:text-white"
+                    }`}
+                  >
+                    <Icon className="h-4 w-4" />
+                    <span className="hidden md:inline">{label}</span>
+                  </Link>
+                ))}
+              </nav>
+            }
             {user && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
