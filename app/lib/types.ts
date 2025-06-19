@@ -25,6 +25,16 @@ export interface ProductEntryLog {
 
 export interface KanbanItem {
   id: number
+  partId: number
+  partName: string
+  process: number
+  prepLocation?: string
+  supplyLocation?: string
+  acknowledgedAt?: string | Date // ISO timestamp or undefined
+}
+
+export interface KanbanLogItem {
+  id: number
   plantId:number
   plantName?: string
   stationId: number
@@ -41,8 +51,8 @@ export interface KanbanItem {
   acknowledgedAt?: string | Date // ISO timestamp or undefined
   fulfilled: boolean
   fulfilledAt?: string | Date // ISO timestamp or undefined
-  frozenData?: boolean
 }
+
 
 export interface PreparationKanbanResponse {
   kanbans: KanbanItem[]

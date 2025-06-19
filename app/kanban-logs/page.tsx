@@ -2,13 +2,13 @@
 
 import { useEffect, useState } from "react"
 import { fetchKanbanLogs } from "../lib/api"
-import type { KanbanItem } from "../lib/types"
+import type { KanbanLogItem } from "../lib/types"
 import { History, RefreshCw, Filter, Package, MapPin } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 
 export default function KanbanLogsPage() {
-  const [logs, setLogs] = useState<KanbanItem[]>([])
+  const [logs, setLogs] = useState<KanbanLogItem[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<"all" | "pending" | "preparation" | "supply">("all")
 
@@ -42,7 +42,7 @@ export default function KanbanLogsPage() {
     return true
   })
 
-  const getStatusBadge = (log: KanbanItem) => {
+  const getStatusBadge = (log: KanbanLogItem) => {
     if (log.fulfilled) {
       return (
         <span className="px-2 py-1 text-xs rounded-full bg-green-900/20 text-green-400 border border-green-700">

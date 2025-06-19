@@ -1,4 +1,4 @@
-import { ActionResponse, ErrorResponse, KanbanItem, KanbanModifyDetails, PreparationKanbanResponse, User } from "./types"
+import { ActionResponse, ErrorResponse, KanbanItem, KanbanLogItem, KanbanModifyDetails, PreparationKanbanResponse, User } from "./types"
 
 const API_BASE = "http://10.82.126.73:3058"
 
@@ -317,7 +317,7 @@ export async function fetchUserProfile(): Promise<User | ErrorResponse | null> {
   }
 }
 
-export async function fetchKanbanLogs(): Promise<KanbanItem[]> {
+export async function fetchKanbanLogs(): Promise<KanbanLogItem[]> {
   try {
     const response = await fetch(`${API_BASE}/kanban-logs`, {
       credentials: "include",

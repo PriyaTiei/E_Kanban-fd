@@ -374,8 +374,8 @@ export default function KanbanTable({ data, processFilters, isFrozenData, onUpda
                               <AlertDialogHeader>
                                 <AlertDialogTitle className="text-white">Confirm Rejection</AlertDialogTitle>
                                 <AlertDialogDescription className="text-gray-300">
-                                  Are you sure you want to reject this kanban request for <strong>{item.partName}</strong>{" "}
-                                  at <strong>{item.stationName}</strong>? This action cannot be undone.
+                                  Are you sure you want to reject this kanban request for <strong>{item.partName}</strong>{" "}? 
+                                  This action cannot be undone.
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
