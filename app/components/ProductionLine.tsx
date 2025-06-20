@@ -180,8 +180,8 @@ export default function ProductionLine() {
       <div className="flex flex-col gap-2 mb-4 md:mb-6">
         <div className="flex flex-col md:flex-row gap-8 items-center justify-between">
           <div className="flex items-center space-x-3">
-            <Activity className="h-8 w-8 text-blue-500" />
-            <h1 className="text-3xl font-bold text-white">Production Line Status</h1>
+            <Activity className="w-6 h-6 md:h-8 md:w-8 text-blue-500" />
+            <h1 className="text-2xl md:text-3xl font-bold text-white">Production Line Status</h1>
           </div>
 
           <div className="w-full md:w-fit flex justify-between md:justify-end items-center space-x-4">
@@ -222,32 +222,32 @@ export default function ProductionLine() {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-8">
+          <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-8">
             {stations.map((station) => (
               <StationCard key={station.id} station={station} refilledParts={refilledParts} />
             ))}
           </div>
 
           <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-            <h2 className="text-xl font-semibold text-white mb-4">Production Summary</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-gray-700 flex flex-col gap-4 rounded-lg p-4">
+            <h2 className="text-lg md:text-xl font-semibold text-white mb-4">Production Summary</h2>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              <div className="bg-gray-700 flex flex-col gap-2 md:gap-4 rounded-lg p-4">
                 {countLoading ? (
                   <div className="h-8 w-20 bg-gray-600 rounded animate-pulse mb-2" />
                 ) : (
                   <div className="text-2xl font-bold text-blue-400">{kanbansToPrepare}</div>
                 )}
-                <div className="text-gray-300">Total Kanbans To Prepare</div>
+                <div className="text-sm md:text-base text-gray-300">Total Kanbans To Prepare</div>
               </div>
-              <div className="bg-gray-700 flex flex-col gap-4 rounded-lg p-4">
+              <div className="bg-gray-700 flex flex-col gap-2 md:gap-4 rounded-lg p-4">
                 {countLoading ? (
                   <div className="h-8 w-20 bg-gray-600 rounded animate-pulse mb-2" />
                 ) : (
                   <div className="text-2xl font-bold text-green-400">{kanbansToSupply}</div>
                 )}
-                <div className="text-gray-300">Total Kanbans To Supply</div>
+                <div className="text-sm md:text-base text-gray-300">Total Kanbans To Supply</div>
               </div>
-              <div className="bg-gray-700 flex flex-col gap-4 rounded-lg p-4">
+              <div className="bg-gray-700 flex flex-col gap-2 md:gap-4 rounded-lg p-4">
                 <div className="flex items-center gap-6">
                   <div className="text-2xl font-bold text-red-400">
                     {stations.reduce(
@@ -263,13 +263,13 @@ export default function ProductionLine() {
                         station.parts.some((part: any) => part.currentQuantity / part.binQuantity <= 0.2),
                       )
                       .map((station) => (
-                        <div key={station.id} className="w-max p-2 border border-red-300 text-xs text-red-300">
+                        <div key={station.id} className="w-max p-2 border border-red-300 rounded-md text-xs text-red-300">
                           {station.name.split(" ")[1]}
                         </div>
                       ))}
                   </div>
                 </div>
-                <div className="text-gray-300">Critical Parts</div>
+                <div className="text-sm md:text-base text-gray-300">Critical Parts</div>
               </div>
             </div>
           </div>

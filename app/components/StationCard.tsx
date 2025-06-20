@@ -69,7 +69,7 @@ export default function StationCard({ station, refilledParts = new Set() }: Stat
             return (
               <div
                 key={part.id}
-                className={`flex items-center justify-between p-2 border ${getStatusColor(status)} ${isRefilled ? "ring-2 ring-blue-400" : ""}`}
+                className={`flex items-center justify-between p-2 border rounded-md ${getStatusColor(status)} ${isRefilled ? "ring-2 ring-blue-400" : ""}`}
               >
                 <div className="flex items-center space-x-2">
                   {getStatusIcon(status)}

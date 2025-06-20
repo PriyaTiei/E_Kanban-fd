@@ -77,7 +77,7 @@ export default function MobileSidebar() {
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="w-80 bg-gray-800 border-gray-700 p-0">
+              <SheetContent side="left" className="w-80 bg-gray-800 border-gray-700 p-0 overflow-y-auto">
                 <div className="flex flex-col h-full">
                   <SheetHeader className="p-6 pb-4">
                     <div className="flex items-center space-x-3">

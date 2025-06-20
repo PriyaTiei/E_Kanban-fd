@@ -62,7 +62,7 @@ export default function KanbanTable({
     } else {
       params.delete("process")
     }
-    router.push(`?${params.toString()}`)
+    router.push(`?${params.toString()}`, { scroll: false })
   }
 
   const handleFreezeToggle = async () => {
@@ -210,40 +210,29 @@ export default function KanbanTable({
 
   const columns: Partial<keyof KanbanItem>[] = Object.keys(data[0]).filter((key) => {
     const commonFilters = [
-      "acknowledgedByLogistics",
-      "fulfilled",
-      "fulfilledAt",
       "id",
-      "stationId",
       "partId",
-      "plantId",
-      "productId",
-      "productName",
-      "frozenData",
     ]
-    if (title === "Preparation List") {
-      return ![...commonFilters, "acknowledgedAt"].includes(key)
-    }
     return !commonFilters.includes(key)
   }) as Partial<keyof KanbanItem>[]
 
   return (
     <div className={`card`}>
       <div className="flex flex-col space-y-4 mb-6">
-        <div className="flex flex-col sm:flex-row sm:items-baseline justify-between space-y-4 sm:space-y-0">
+        <div className="flex flex-row items-baseline justify-between gap-4 flex-wrap">
           <div>
             <h2 className={`text-xl md:text-2xl font-bold ${isFrozen && isPreparationSheet ? "text-blue-400" : ""}`}>
               {title} {isFrozen && isPreparationSheet && <Snowflake className="inline h-4 w-4 md:h-5 md:w-5 ml-1" />}
             </h2>
-            <div className="text-sm text-gray-400 mt-1">
+            <div className="text-xs md:text-sm text-gray-400 mt-1">
               Total <span className="text-white">{data.length}</span> {data.length === 1 ? "kanban" : "kanbans"} pending
             </div>
           </div>
           <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-2">
             <Link href="/kanban-logs">
-              <Button variant="outline" size="sm" className="border-gray-600 text-gray-300 hover:bg-gray-700">
+              <Button variant="outline" size="sm" className="border-gray-600 bg-transparent text-gray-300 hover:bg-gray-700">
                 <History className="h-4 w-4 mr-2" />
-                <span>View Logs</span>
+                <span className="text-xs md:text-sm">View Logs</span>
               </Button>
             </Link>
           </div>
@@ -252,12 +241,12 @@ export default function KanbanTable({
         {/* Process Filter Buttons */}
         {processFilters && processFilters.length > 0 && (
           <div>
-            <div className="text-sm text-gray-400 mb-2">Select Process</div>
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="text-xs md:text-sm text-gray-400 mb-2">Select Process</div>
+            <div className="flex flex-row items-center justify-between gap-4 flex-wrap">
               <div className="flex flex-wrap gap-2">
                 <button
                   onClick={() => handleProcessFilter(null)}
-                  className={`px-3 py-2 text-sm font-medium transition-colors rounded ${
+                  className={`px-3 py-1 text-sm font-medium transition-colors rounded ${
                     !selectedProcess ? "bg-blue-600 text-white" : "bg-gray-700 text-gray-300 hover:bg-gray-600"
                   }`}
                 >
@@ -267,7 +256,7 @@ export default function KanbanTable({
                   <button
                     key={process}
                     onClick={() => handleProcessFilter(process)}
-                    className={`px-3 py-2 text-sm font-medium transition-colors rounded ${
+                    className={`px-3 py-1 font-medium text-xs md:text-sm transition-colors rounded ${
                       selectedProcess === process
                         ? "bg-blue-600 text-white"
                         : "bg-gray-700 text-gray-300 hover:bg-gray-600"
@@ -282,7 +271,7 @@ export default function KanbanTable({
                   onClick={handleFreezeToggle}
                   disabled={freezeLoading}
                   size="sm"
-                  className={`${
+                  className={`w-fit ${
                     isFrozen
                       ? "bg-orange-600 hover:bg-orange-700 text-white"
                       : "bg-blue-600 hover:bg-blue-700 text-white"
@@ -313,8 +302,10 @@ export default function KanbanTable({
               index={index}
               onUpdate={onUpdate}
               onDelete={onDelete}
+              isPreparationSheet={title === "Preparation List"}
               showActions={selectedProcess !== null}
               onRefresh={onRefresh}
+              isFrozen={isFrozen}
             />
           ))}
         </div>
@@ -358,7 +349,7 @@ export default function KanbanTable({
                   ))}
                   {selectedProcess !== null && (
                     <td className="px-6 py-4 whitespace-nowrap text-center">
-                      <div className="flex justify-center space-x-2">
+                      <div className="flex justify-center space-x-2 flex-wrap">
                         <button
                           onClick={() => handleAction(item.id, "update")}
                           disabled={loading[item.id] != null}

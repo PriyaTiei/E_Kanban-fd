@@ -13,7 +13,7 @@ function PreparationListContent() {
   const [loading, setLoading] = useState(true)
   const searchParams = useSearchParams()
 
-  const selectedProcess = searchParams.get("process") ? Number.parseInt(searchParams.get("process")!) : undefined
+  const selectedProcess = searchParams.get("process") ? Number.parseInt(searchParams.get("process")!) : null
 
   const fetchData = async () => {
     setLoading(true)

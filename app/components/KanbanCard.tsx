@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Check, X, Loader2, MapPin, Package } from "lucide-react"
+import { Check, X, Loader2, MapPin, Package, Clock } from "lucide-react"
 import type { KanbanItem, KanbanModifyDetails } from "../lib/types"
 import { useToast } from "@/hooks/use-toast"
 import {
@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { useAuth } from "../contexts/AuthContext"
+import { formatDate } from "../lib/helpers"
 
 interface KanbanCardProps {
   item: KanbanItem
@@ -27,9 +28,11 @@ interface KanbanCardProps {
   onDelete: (deleteKanban: KanbanModifyDetails) => Promise<boolean>
   showActions: boolean
   onRefresh?: () => void
+  isFrozen: boolean
+  isPreparationSheet: boolean
 }
 
-export default function KanbanCard({ item, index, onUpdate, onDelete, showActions, onRefresh }: KanbanCardProps) {
+export default function KanbanCard({ item, index, onUpdate, onDelete, showActions, onRefresh, isFrozen, isPreparationSheet }: KanbanCardProps) {
   const { user } = useAuth()
   const [loading, setLoading] = useState<"update" | "delete" | null>(null)
   const { toast } = useToast()
@@ -67,12 +70,12 @@ export default function KanbanCard({ item, index, onUpdate, onDelete, showAction
   }
 
   return (
-    <Card className="bg-gray-800 border-gray-700 hover:border-gray-600 transition-colors">
-      <CardContent className="p-4">
-        <div className="space-y-4">
+    <Card className={`bg-gray-800 ${isFrozen && isPreparationSheet ? 'border-blue-400/70' : 'border-gray-700'} transition-colors`}>
+      <CardContent className="p-0">
+        <div className="flex justify-between gap-2">
           {/* Header with index and key info */}
           <div className="flex items-start justify-between">
-            <div className="flex-1 space-y-2">
+            <div className="flex-1 space-y-2 p-4">
               <div className="flex items-center space-x-2">
                 <Badge variant="outline" className="text-xs bg-gray-700 border-gray-600 text-gray-300">
                   #{index + 1}
@@ -81,23 +84,31 @@ export default function KanbanCard({ item, index, onUpdate, onDelete, showAction
                   Process {item.process}
                 </Badge>
               </div>
+              <div className="flex flex-col justify-between flex-wrap gap-1">
+                <div className="flex items-baseline gap-4">
+                  {/* Part Name - Highlighted */}
+                  <div className="flex items-center space-x-2">
+                    <Package className="h-4 w-4 text-blue-400" />
+                    <span className="font-semibold text-white text-sm">{item.partName}</span>
+                  </div>
 
-              {/* Part Name - Highlighted */}
-              <div className="flex items-center space-x-2">
-                <Package className="h-4 w-4 text-blue-400" />
-                <span className="font-semibold text-white text-lg">{item.partName}</span>
-              </div>
-
-              {/* Station Name - Highlighted */}
-              <div className="flex items-center space-x-2">
-                <MapPin className="h-4 w-4 text-green-400" />
-                <span className="font-medium text-green-400">{item.stationName}</span>
+                  {/* Station Name - Highlighted */}
+                  <div className="flex items-center space-x-2">
+                    <MapPin className="h-4 w-4 text-green-400" />
+                    <span className="font-medium text-green-400 text-sm">{item.prepLocation || item.supplyLocation}</span>
+                  </div>
+                </div>
+                { item?.acknowledgedAt &&
+                <div className="flex items-center space-x-2">
+                  <span className="font-medium text-white/70 text-xs">Prepared: {formatDate(String(item?.acknowledgedAt))}</span>
+                </div>
+                }
               </div>
             </div>
           </div>
 
           {/* Additional Details */}
-          <div className="grid grid-cols-2 gap-3 text-sm">
+          {/* <div className="grid grid-cols-2 gap-3 text-sm">
             {item.plantName && (
               <div>
                 <span className="text-gray-400">Plant:</span>
@@ -108,11 +119,11 @@ export default function KanbanCard({ item, index, onUpdate, onDelete, showAction
               <span className="text-gray-400">Requested:</span>
               <span className="ml-2 text-white">{new Date(item.requestedAt).toLocaleString()}</span>
             </div>
-          </div>
+          </div> */}
 
           {/* Action Buttons */}
           {showActions && (
-            <div className="flex space-x-2 pt-2 border-t border-gray-700">
+            <div className="p-2 flex flex-col gap-2 flex-wrap">
               <Button
                 onClick={() => handleAction("update")}
                 disabled={loading !== null}
@@ -130,7 +141,7 @@ export default function KanbanCard({ item, index, onUpdate, onDelete, showAction
               {user?.role === "admin" ? (
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
-                    <Button disabled={loading !== null} variant="destructive" size="sm" className="flex-1">
+                    <Button disabled={loading !== null} size="sm" className="flex-1 bg-red-600/90 hover:bg-red-700/90 text-white">
                       {loading === "delete" ? (
                         <Loader2 className="h-4 w-4 animate-spin mr-2" />
                       ) : (

@@ -27,7 +27,7 @@ export default function Header() {
     { href: "/", label: "Production Line", icon: Factory },
     { href: "/preparation-list", label: "Preparation List", icon: Package },
     { href: "/supply-list", label: "Supply List", icon: Forklift },
-    { href: "/kanban-logs", label: "Kanban Logs", icon: History },
+    // { href: "/kanban-logs", label: "Kanban Logs", icon: History },
   ]
 
   const handleLogout = async () => {
@@ -89,7 +89,7 @@ export default function Header() {
                     }`}
                   >
                     <Icon className="h-4 w-4" />
-                    <span className="hidden lg:inline">{label}</span>
+                    <span className="hidden text-sm lg:inline">{label}</span>
                   </Link>
                 ))}
               </nav>

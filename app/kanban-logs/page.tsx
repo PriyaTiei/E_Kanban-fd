@@ -3,9 +3,10 @@
 import { useEffect, useState } from "react"
 import { fetchKanbanLogs } from "../lib/api"
 import type { KanbanLogItem } from "../lib/types"
-import { History, RefreshCw, Filter, MapPin, Clock, CheckCircle, AlertCircle } from "lucide-react"
+import { History, RefreshCw, Filter, MapPin, Clock, CheckCircle, AlertCircle, Package } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { formatDate } from "../lib/helpers"
 
 export default function KanbanLogsPage() {
   const [logs, setLogs] = useState<KanbanLogItem[]>([])
@@ -41,17 +42,6 @@ export default function KanbanLogsPage() {
     }
     return true
   })
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    const today = new Date()
-    const isToday = date.toDateString() === today.toDateString()
-
-    if (isToday) {
-      return `Today, ${date.toLocaleTimeString()}`
-    }
-    return date.toLocaleString()
-  }
 
   const getStatusInfo = (log: KanbanLogItem) => {
     if (log.fulfilled) {
@@ -115,19 +105,19 @@ export default function KanbanLogsPage() {
 
   return (
     <div className="container mx-auto px-4 py-6 md:py-8">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 md:mb-8 space-y-4 sm:space-y-0">
+      <div className="flex items-center justify-between mb-6 md:mb-8 gap-4 flex-wrap">
         <div className="flex items-center space-x-3">
           <History className="h-6 w-6 md:h-8 md:w-8 text-blue-500" />
           <h1 className="text-2xl md:text-3xl font-bold text-white">Kanban Logs</h1>
         </div>
 
-        <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
+        <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
           <div className="flex items-center space-x-2">
-            <Filter className="h-4 w-4 text-gray-400" />
+            <Filter className="h-5 w-5 text-gray-400" />
             <select
               value={filter}
               onChange={(e) => setFilter(e.target.value as "all" | "pending" | "preparation" | "supply")}
-              className="bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 text-sm"
+              className="bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 text-xs md:text-sm"
             >
               <option value="all">All Logs</option>
               <option value="pending">Pending</option>
@@ -135,7 +125,7 @@ export default function KanbanLogsPage() {
               <option value="supply">Supply</option>
             </select>
           </div>
-          <Button onClick={loadLogs} disabled={loading} className="bg-blue-600 hover:bg-blue-700">
+          <Button onClick={loadLogs} disabled={loading} className="bg-blue-600 hover:bg-blue-700 text-white text-xs md:text-sm">
             <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />
             Refresh
           </Button>
@@ -162,7 +152,7 @@ export default function KanbanLogsPage() {
             .map(([date, dayLogs]) => (
               <div key={date} className="space-y-4">
                 <div className="sticky top-0 md:top-16 bg-gray-900/95 backdrop-blur-sm py-2 z-10">
-                  <h2 className="text-lg font-semibold text-white border-b border-gray-700 pb-2">
+                  <h2 className="md:text-lg font-semibold text-white border-b border-gray-700 pb-2">
                     {formatDateHeader(date)}
                   </h2>
                 </div>
@@ -188,16 +178,16 @@ export default function KanbanLogsPage() {
                             </div>
 
                             {/* Content */}
-                            <div className="flex-1 min-w-0 pb-4">
+                            <div className="flex-1 min-w-0 pb-4 text-sm md:text-base">
                               <Card className="bg-gray-800 border-gray-700 hover:border-gray-600 transition-colors">
                                 <CardContent className="p-4 md:p-6">
                                   <div className="flex items-start justify-between">
-                                    <div className="flex-1 space-y-3">
+                                    <div className="flex-1 space-y-2">
                                       <div className="flex items-center justify-between">
                                         <div className="flex items-center space-x-4">
                                           <div className="flex items-center space-x-2">
-                                            <MapPin className="h-4 w-4 text-green-400" />
-                                            <span className="text-gray-300">{log.stationName}</span>
+                                            <Package className="h-4 w-4 text-blue-400" />
+                                            <span className="text-gray-300">{log.partName}</span>
                                           </div>
                                         </div>
                                         <span
@@ -206,12 +196,12 @@ export default function KanbanLogsPage() {
                                           {statusInfo.status}
                                         </span>
                                       </div>
-                                      <div className="flex items-center space-x-4 justify-between">
-                                        <div className="flex flex-col gap-4 text-sm">
-                                          <div className="flex items-end gap-4">
+                                      <div className="flex gap-2 justify-between flex-wrap">
+                                        <div className="flex flex-col gap-2 text-xs md:text-sm">
+                                          <div className="flex items-center gap-y-2 gap-x-4 flex-wrap">
                                             <div>
-                                              <span className="text-gray-400">Part:</span>
-                                              <span className="ml-2 text-white">{log.partName}</span>
+                                              <span className="text-gray-400">Station:</span>
+                                              <span className="ml-2 text-white">{log.stationName}</span>
                                             </div>
                                             <div>
                                               <span className="text-gray-400">Plant:</span>
@@ -220,23 +210,23 @@ export default function KanbanLogsPage() {
                                           </div>
                                           <div>
                                             <span className="text-gray-400">Requested:</span>
-                                            <span className="ml-2 text-white">{formatDate(log.requestedAt)}</span>
+                                            <span className="ml-2 text-white">{formatDate(String(log.requestedAt))}</span>
                                           </div>
                                         </div>
 
                                         {log.acknowledgedByLogistics && (
-                                          <div className="flex flex-col items-end gap-4 text-sm">
+                                          <div className="flex flex-col justify-end items-end gap-2 text-xs md:text-sm">
                                             <div>
                                               <span className="text-gray-400">Acknowledged:</span>
                                               <span className="ml-2 text-blue-400">
-                                                {log.acknowledgedAt ? formatDate(log.acknowledgedAt) : "Yes"}
+                                                {log.acknowledgedAt ? formatDate(String(log.acknowledgedAt)) : "Yes"}
                                               </span>
                                             </div>
                                             {log.fulfilled && log.fulfilledAt && (
                                               <div>
                                                 <span className="text-gray-400">Fulfilled:</span>
                                                 <span className="ml-2 text-green-400">
-                                                  {formatDate(log.fulfilledAt)}
+                                                  {formatDate(String(log.fulfilledAt))}
                                                 </span>
                                               </div>
                                             )}
