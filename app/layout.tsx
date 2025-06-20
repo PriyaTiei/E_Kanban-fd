@@ -4,11 +4,12 @@ import { Inter } from "next/font/google"
 import "./app.css"
 import "../styles/globals.css"
 import Header from "./components/Header"
-import MobileSidebar from "./components/MobileSidebar"
+import AppSidebar from "./components/AppSidebar"
 import Footer from "./components/Footer"
 import { AuthProvider } from "./contexts/AuthContext"
 import { Toaster } from "@/components/ui/toaster"
 import AuthWrapper from "./components/AuthWrapper"
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -25,13 +26,26 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="dark">
-      <body className={`${inter.className} bg-gray-900 text-gray-100 min-h-screen flex flex-col`}>
+      <body className={`${inter.className} bg-gray-900 text-gray-100 min-h-screen`}>
         <AuthProvider>
           <AuthWrapper>
-            <Header />
-            <MobileSidebar />
-            <main className="flex-1 pt-0 md:pt-0">{children}</main>
-            <Footer />
+            {/* Mobile Layout with Sidebar */}
+            <div className="md:hidden">
+              <SidebarProvider defaultOpen={true}>
+                <AppSidebar />
+                <SidebarInset className="flex flex-col min-h-screen">
+                  <main className="flex-1 p-4">{children}</main>
+                  <Footer />
+                </SidebarInset>
+              </SidebarProvider>
+            </div>
+
+            {/* Desktop Layout with Header */}
+            <div className="hidden md:flex flex-col min-h-screen">
+              <Header />
+              <main className="flex-1">{children}</main>
+              <Footer />
+            </div>
           </AuthWrapper>
           <Toaster />
         </AuthProvider>
