@@ -6,26 +6,17 @@ import { Factory, Forklift, Package, User, LogOut, History } from "lucide-react"
 import { useAuth } from "../contexts/AuthContext"
 import { logoutUser } from "../lib/api"
 import { useToast } from "@/hooks/use-toast"
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarTrigger,
-  useSidebar,
-} from "@/components/ui/sidebar"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import Image from "next/image"
+import { useState } from "react"
+import SidebarCollapseButton from "./AppSidebarCollapseBtn"
+import { useSidebar } from "../contexts/SideBarContext"
 
-export default function AppSidebar() {
+function CustomSidebar({visible = true}: { visible?: boolean }) {
   const pathname = usePathname()
   const router = useRouter()
   const { user, logout } = useAuth()
   const { toast } = useToast()
-  const { state } = useSidebar()
 
   const navItems = [
     { href: "/", label: "Production Line", icon: Factory },
@@ -65,65 +56,44 @@ export default function AppSidebar() {
     }
   }
 
-  if (!user) return null
+  if (!user || !visible) return null
 
   return (
-    <Sidebar className="border-r border-gray-700 bg-gray-800" collapsible="icon">
-      <SidebarHeader className="p-3">
-        <div className="flex items-center justify-between">
-          {state === "expanded" ? (
-            <div className="flex items-center space-x-2">
-              <Image
-                src="/images/Tiei_logo.png"
-                alt="TIEI logo"
-                width={32}
-                height={32}
-                className="h-8 w-auto object-cover object-left"
-                priority
-              />
-              <span className="text-sm font-bold text-white">E-Kanban</span>
-            </div>
-          ) : (
-            <Image
-              src="/images/Tiei_logo.png"
-              alt="TIEI logo"
-              width={24}
-              height={24}
-              className="h-6 w-auto object-cover object-left mx-auto"
-              priority
-            />
-          )}
-          <SidebarTrigger className="text-gray-400 hover:text-white" />
-        </div>
-      </SidebarHeader>
+    <aside className={`fixed top-0 left-0 z-40 h-full w-fit bg-gray-800 border-r border-gray-700 flex-col items-center hidden sm:flex md:hidden
+        transition-transform duration-300 ease-in-out
+        ${visible ? "translate-x-0" : "-translate-x-full"}
+      `}
+    >
+        {/* <div className="p-4 flex items-center justify-between">
+          <Image
+            src="/images/Tiei_logo.png"
+            alt="TIEI logo"
+            width={24}
+            height={24}
+            className="h-6 w-auto object-cover object-left mx-auto"
+            priority
+          />
+        </div> */}
 
-      <SidebarContent className="px-2">
+      {/* Content */}
+      <div className="px-2 flex-1 flex flex-col justify-center w-full">
         {/* User Info */}
-        {state === "expanded" && (
-          <div className="mb-4 p-2 bg-gray-700/50 rounded-lg">
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center">
-                <User className="h-4 w-4 text-gray-300" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium text-white truncate">{user.username}</p>
-                <p className={`text-xs ${getRoleColor(user.role)} capitalize`}>{user.role}</p>
-              </div>
-            </div>
+        {/* <div className="my-8">
+          <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center">
+            <User className="h-4 w-4 text-gray-300" />
           </div>
-        )}
+          <hr className="my-2 border-gray-700" />
+        </div> */}
 
         {/* Navigation */}
-        <SidebarMenu>
+        <div className="flex flex-col items-center gap-2">
           {navItems.map(({ href, label, icon: Icon }) => (
-            <SidebarMenuItem key={href}>
+            <div key={href} className="">
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <SidebarMenuButton
-                      asChild
-                      isActive={pathname === href}
-                      className={`w-full ${
+                    <div
+                      className={`w-full p-1 rounded ${
                         pathname === href
                           ? "bg-blue-600 text-white hover:bg-blue-700"
                           : "text-gray-300 hover:bg-gray-700 hover:text-white"
@@ -131,46 +101,58 @@ export default function AppSidebar() {
                     >
                       <Link href={href} className="flex items-center space-x-3">
                         <Icon className="h-5 w-5" />
-                        {state === "expanded" && <span className="text-sm">{label}</span>}
+                        {/* {state === "expanded" && <span className="text-sm">{label}</span>} */}
                       </Link>
-                    </SidebarMenuButton>
+                    </div>
                   </TooltipTrigger>
-                  {state === "collapsed" && (
+                  {/* {state === "collapsed" && ( */}
                     <TooltipContent side="right" className="bg-gray-700 text-white border-gray-600">
                       {label}
                     </TooltipContent>
-                  )}
+                  {/* )} */}
                 </Tooltip>
               </TooltipProvider>
-            </SidebarMenuItem>
+            </div>
           ))}
-        </SidebarMenu>
-      </SidebarContent>
+        </div>
+      </div>
 
-      <SidebarFooter className="p-2">
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <SidebarMenuButton
-                    onClick={handleLogout}
-                    className="w-full text-gray-300 hover:bg-gray-700 hover:text-white"
-                  >
-                    <LogOut className="h-5 w-5" />
-                    {state === "expanded" && <span className="text-sm">Log out</span>}
-                  </SidebarMenuButton>
-                </TooltipTrigger>
-                {state === "collapsed" && (
-                  <TooltipContent side="right" className="bg-gray-700 text-white border-gray-600">
-                    Log out
-                  </TooltipContent>
-                )}
-              </Tooltip>
-            </TooltipProvider>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarFooter>
-    </Sidebar>
+      {/* Footer */}
+      <div className="p-2 justify-self-end">
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={handleLogout}
+                className="flex items-center justify-center w-8 h-8 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white"
+              >
+                <LogOut className="h-5 w-5" />
+                {/* {state === "expanded" && <span className="text-sm">Log out</span>} */}
+              </button>
+            </TooltipTrigger>
+            {/* {state === "collapsed" && ( */}
+              <TooltipContent side="right" className="bg-gray-700 text-white border-gray-600">
+                Log out
+              </TooltipContent>
+            {/* )} */}
+          </Tooltip>
+        </TooltipProvider>
+      </div>
+    </aside>
+  )
+}
+
+export default function AppSidebar() {
+  const { visible, toggle } = useSidebar()
+
+  return (
+    <div>
+      {/* Collapse button (only on sm screens) */}
+      <SidebarCollapseButton
+        onClick={toggle}
+      />
+      {/* Sidebar (only on sm screens) */}
+      <CustomSidebar visible={visible} />
+    </div>
   )
 }

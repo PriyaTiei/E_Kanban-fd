@@ -26,7 +26,7 @@
   }
 
   .card {
-    @apply bg-gray-800 border border-gray-700 rounded-lg p-6 shadow-lg;
+    @apply bg-gray-800 border border-gray-700 rounded-lg p-6 shadow-lg w-full;
   }
 
   .table-container {

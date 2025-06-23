@@ -222,7 +222,7 @@ export default function ProductionLine() {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-8">
             {stations.map((station) => (
               <StationCard key={station.id} station={station} refilledParts={refilledParts} />
             ))}
@@ -230,7 +230,7 @@ export default function ProductionLine() {
 
           <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
             <h2 className="text-lg md:text-xl font-semibold text-white mb-4">Production Summary</h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               <div className="bg-gray-700 flex flex-col gap-2 md:gap-4 rounded-lg p-4">
                 {countLoading ? (
                   <div className="h-8 w-20 bg-gray-600 rounded animate-pulse mb-2" />

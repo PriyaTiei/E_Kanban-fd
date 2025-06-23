@@ -16,12 +16,39 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
+import { useEffect, useRef, useState } from "react"
 
 export default function Header() {
+  const [showHeader, setShowHeader] = useState(true)
+  const lastScrollY = useRef(0)
+  const ticking = useRef(false)
   const pathname = usePathname()
   const router = useRouter()
   const { user, logout } = useAuth()
   const { toast } = useToast()
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!ticking.current) {
+        window.requestAnimationFrame(() => {
+          const currentScrollY = window.scrollY
+          if (currentScrollY > lastScrollY.current && currentScrollY > 60) {
+            // Scrolling down
+            setShowHeader(false)
+          } else {
+            // Scrolling up
+            setShowHeader(true)
+          }
+          lastScrollY.current = currentScrollY
+          ticking.current = false
+        })
+        ticking.current = true
+      }
+    }
+
+    window.addEventListener("scroll", handleScroll)
+    return () => window.removeEventListener("scroll", handleScroll)
+  }, [])
 
   const navItems = [
     { href: "/", label: "Production Line", icon: Factory },
@@ -62,9 +89,13 @@ export default function Header() {
   }
 
   return (
-    <header className="hidden md:block bg-gray-800 border-b border-gray-700 sticky top-0 z-50">
+    <header className={`sm:hidden md:block bg-gray-800 border-b border-gray-700 sticky top-0 z-50
+        transition-transform duration-300 ease-in-out ${showHeader ? "translate-y-0" : "-translate-y-full"}
+      `}
+      style={{ willChange: "transform" }}
+    >
       <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-14 md:h-16">
           <div className="flex items-center space-x-1">
             <Image
               src="/images/Tiei_logo.png"
@@ -89,7 +120,7 @@ export default function Header() {
                     }`}
                   >
                     <Icon className="h-4 w-4" />
-                    <span className="hidden text-sm lg:inline">{label}</span>
+                    <span className="hidden text-sm md:inline">{label}</span>
                   </Link>
                 ))}
               </nav>

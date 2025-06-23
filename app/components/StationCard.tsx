@@ -41,7 +41,7 @@ export default function StationCard({ station, refilledParts = new Set() }: Stat
   }
 
   return (
-    <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-gray-600 transition-colors">
+    <div className="h-fit bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-gray-600 transition-colors">
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-lg font-semibold text-white">{station.name}</h3>
       </div>
@@ -69,7 +69,7 @@ export default function StationCard({ station, refilledParts = new Set() }: Stat
             return (
               <div
                 key={part.id}
-                className={`flex items-center justify-between p-2 border rounded-md ${getStatusColor(status)} ${isRefilled ? "ring-2 ring-blue-400" : ""}`}
+                className={`flex flex-wrap items-center justify-between p-2 border rounded-md ${getStatusColor(status)} ${isRefilled ? "ring-2 ring-blue-400" : ""}`}
               >
                 <div className="flex items-center space-x-2">
                   {getStatusIcon(status)}
