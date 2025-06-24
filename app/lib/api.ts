@@ -1,4 +1,4 @@
-import { ActionResponse, ErrorResponse, KanbanItem, KanbanLogItem, KanbanModifyDetails, PreparationKanbanResponse, User } from "./types"
+import { ActionResponse, ErrorResponse, KanbanItem, KanbanLogItem, KanbanModifyDetails, PreparationKanbanResponse, StationPart, User } from "./types"
 
 const API_BASE = "http://10.82.126.73:3058"
 
@@ -12,6 +12,25 @@ export async function fetchStationParts(): Promise<any[]> {
   } catch (error) {
     console.error("Error fetching station parts:", error)
     return []
+  }
+}
+
+export async function updateStationPart(id: number, updates: Partial<StationPart>): Promise<StationPart | ErrorResponse | null> {
+  try {
+    const response = await fetch(`${API_BASE}/station-parts/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify(updates),
+    })
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => null)
+      return { error: errorData?.error || "Failed to update station part" }
+    }
+    return await response.json()
+  } catch (error) {
+    console.error("Error updating station part:", error)
+    return { error: "Error updating station part" }
   }
 }
 
