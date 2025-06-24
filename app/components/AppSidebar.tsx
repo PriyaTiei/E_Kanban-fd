@@ -93,7 +93,7 @@ function CustomSidebar({visible = true}: { visible?: boolean }) {
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <div
-                      className={`w-full p-1 rounded ${
+                      className={`w-full p-2 rounded ${
                         pathname === href
                           ? "bg-blue-600 text-white hover:bg-blue-700"
                           : "text-gray-300 hover:bg-gray-700 hover:text-white"

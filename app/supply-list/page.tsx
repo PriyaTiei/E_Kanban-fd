@@ -5,6 +5,7 @@ import { deleteSupplyKanban, fetchSupplyKanbans, updateSupplyKanban } from "../l
 import type { KanbanItem } from "../lib/types"
 import { useSearchParams } from "next/navigation"
 import KanbanTable from "../components/KanbanTable"
+import Loading from "../components/loading"
 
 function SupplyListContent() {
   const [data, setData] = useState<KanbanItem[]>([])
@@ -37,11 +38,12 @@ function SupplyListContent() {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="card">
-          <div className="text-center py-8 text-gray-400">Loading...</div>
-        </div>
-      </div>
+      // <div className="container mx-auto px-4 py-8">
+      //   <div className="card">
+      //     <div className="text-center py-8 text-gray-400">Loading...</div>
+      //   </div>
+      // </div>
+      <Loading />
     )
   }
 
@@ -63,11 +65,12 @@ export default function SupplyListPage() {
   return (
     <Suspense
       fallback={
-        <div className="container mx-auto px-4 py-8">
-          <div className="card">
-            <div className="text-center py-8 text-gray-400">Loading...</div>
-          </div>
-        </div>
+        // <div className="container h-screen mx-auto px-4 py-8">
+        //   <div className="card">
+        //     <div className="text-center py-8 text-gray-400">Loading...</div>
+        //   </div>
+        // </div>
+        <Loading />
       }
     >
       <SupplyListContent />

@@ -5,6 +5,7 @@ import { deletePreparationKanban, fetchPreparationKanbans, updatePreparationKanb
 import type { KanbanItem } from "../lib/types"
 import { Suspense } from "react"
 import KanbanTable from "../components/KanbanTable"
+import Loading from "../components/loading"
 
 function PreparationListContent() {
   const [data, setData] = useState<KanbanItem[]>([])
@@ -36,11 +37,12 @@ function PreparationListContent() {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="card">
-          <div className="text-center py-8 text-gray-400">Loading...</div>
-        </div>
-      </div>
+      // <div className="container mx-auto px-4 py-8">
+      //   <div className="card">
+      //     <div className="text-center py-8 text-gray-400">Loading...</div>
+      //   </div>
+      // </div>
+      <Loading />
     )
   }
 
@@ -62,11 +64,12 @@ export default function PreparationListTableClient() {
   return (
     <Suspense
       fallback={
-        <div className="container mx-auto px-4 py-8">
-          <div className="card">
-            <div className="text-center py-8 text-gray-400">Loading...</div>
-          </div>
-        </div>
+        // <div className="container mx-auto px-4 py-8">
+        //   <div className="card h-screen">
+        //     <div className="text-center py-8 text-gray-400">Loading...</div>
+        //   </div>
+        // </div>
+        <Loading />
       }
     >
       <PreparationListContent />

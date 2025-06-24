@@ -184,13 +184,13 @@ export default function ProductionLine() {
             <h1 className="text-2xl md:text-3xl font-bold text-white">Production Line Status</h1>
           </div>
 
-          <div className="w-full md:w-fit flex justify-between md:justify-end items-center space-x-4">
-            {user?.role === "admin" &&
+          <div className="w-full md:w-fit flex justify-end items-center space-x-4">
+            {/* {user?.role === "admin" &&
               <button onClick={handleSimulate} className="btn-primary flex items-center space-x-2">
                 <Computer className="h-4 w-4" />
                 <span className="text-sm md:text-base">Simulate</span>
               </button>
-            }
+            } */}
             <button onClick={loadData} disabled={loading} className="btn-primary flex items-center space-x-2">
               <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
               <span className="text-sm md:text-base">Refresh</span>
@@ -222,7 +222,7 @@ export default function ProductionLine() {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-5 mb-8">
             {stations.map((station) => (
               <StationCard key={station.id} station={station} refilledParts={refilledParts} />
             ))}

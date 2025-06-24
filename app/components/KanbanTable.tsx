@@ -217,211 +217,213 @@ export default function KanbanTable({
   }) as Partial<keyof KanbanItem>[]
 
   return (
-    <div className={`card`}>
-      <div className="flex flex-col space-y-4 mb-6">
-        <div className="flex flex-row items-baseline justify-between gap-4 flex-wrap">
-          <div>
-            <h2 className={`text-xl md:text-2xl font-bold ${isFrozen && isPreparationSheet ? "text-blue-400" : ""}`}>
-              {title} {isFrozen && isPreparationSheet && <Snowflake className="inline h-4 w-4 md:h-5 md:w-5 ml-1" />}
-            </h2>
-            <div className="text-xs md:text-sm text-gray-400 mt-1">
-              Total <span className="text-white">{data.length}</span> {data.length === 1 ? "kanban" : "kanbans"} pending
+    <div className="">
+      <div className={``}>
+        <div className="flex flex-col space-y-4 mb-6">
+          <div className="flex flex-row items-baseline justify-between gap-4 flex-wrap">
+            <div>
+              <h2 className={`text-2xl md:text-3xl font-bold ${isFrozen && isPreparationSheet ? "text-blue-400" : ""}`}>
+                {title} {isFrozen && isPreparationSheet && <Snowflake className="inline h-4 w-4 md:h-5 md:w-5 ml-1" />}
+              </h2>
+              <div className="text-xs md:text-sm text-gray-400 mt-1">
+                Total <span className="text-white">{data.length}</span> {data.length === 1 ? "kanban" : "kanbans"} pending
+              </div>
+            </div>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-2">
+              <Link href="/kanban-logs">
+                <Button variant="outline" size="sm" className="border-gray-600 bg-transparent text-gray-300 hover:bg-gray-700">
+                  <History className="h-4 w-4 mr-2" />
+                  <span className="text-xs md:text-sm">View Logs</span>
+                </Button>
+              </Link>
             </div>
           </div>
-          <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-2">
-            <Link href="/kanban-logs">
-              <Button variant="outline" size="sm" className="border-gray-600 bg-transparent text-gray-300 hover:bg-gray-700">
-                <History className="h-4 w-4 mr-2" />
-                <span className="text-xs md:text-sm">View Logs</span>
-              </Button>
-            </Link>
-          </div>
-        </div>
 
-        {/* Process Filter Buttons */}
-        {processFilters && processFilters.length > 0 && (
-          <div>
-            <div className="text-xs md:text-sm text-gray-400 mb-2">Select Process</div>
-            <div className="flex flex-row items-center justify-between gap-4 flex-wrap">
-              <div className="flex flex-wrap gap-2">
-                <button
-                  onClick={() => handleProcessFilter(null)}
-                  className={`px-3 py-1 text-sm font-medium transition-colors rounded ${
-                    !selectedProcess ? "bg-blue-600 text-white" : "bg-gray-700 text-gray-300 hover:bg-gray-600"
-                  }`}
-                >
-                  All
-                </button>
-                {processFilters.map((process) => (
+          {/* Process Filter Buttons */}
+          {processFilters && processFilters.length > 0 && (
+            <div>
+              <div className="text-xs md:text-sm text-gray-400 mb-2">Select Process</div>
+              <div className="flex flex-row items-center justify-between gap-4 flex-wrap">
+                <div className="flex flex-wrap gap-2">
                   <button
-                    key={process}
-                    onClick={() => handleProcessFilter(process)}
-                    className={`px-3 py-1 font-medium text-xs md:text-sm transition-colors rounded ${
-                      selectedProcess === process
-                        ? "bg-blue-600 text-white"
-                        : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                    onClick={() => handleProcessFilter(null)}
+                    className={`px-3 py-1 text-sm font-medium transition-colors rounded ${
+                      !selectedProcess ? "bg-blue-600 text-white" : "bg-gray-700 text-gray-300 hover:bg-gray-600"
                     }`}
                   >
-                    {process}
+                    All
                   </button>
-                ))}
-              </div>
-              {isPreparationSheet && selectedProcess && (
-                <Button
-                  onClick={handleFreezeToggle}
-                  disabled={freezeLoading}
-                  size="sm"
-                  className={`w-fit ${
-                    isFrozen
-                      ? "bg-orange-600 hover:bg-orange-700 text-white"
-                      : "bg-blue-600 hover:bg-blue-700 text-white"
-                  }`}
-                >
-                  {freezeLoading ? (
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  ) : isFrozen ? (
-                    <Play className="h-4 w-4 mr-2" />
-                  ) : (
-                    <Snowflake className="h-4 w-4 mr-2" />
-                  )}
-                  <span>{isFrozen ? "Unfreeze" : "Freeze"} List</span>
-                </Button>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Mobile Card View */}
-      <div className="block md:hidden">
-        <div className="grid gap-4">
-          {data.map((item, index) => (
-            <KanbanCard
-              key={item.id || index}
-              item={item}
-              index={index}
-              onUpdate={onUpdate}
-              onDelete={onDelete}
-              isPreparationSheet={title === "Preparation List"}
-              showActions={selectedProcess !== null}
-              onRefresh={onRefresh}
-              isFrozen={isFrozen}
-            />
-          ))}
-        </div>
-      </div>
-
-      {/* Desktop Table View */}
-      <div className="hidden md:block table-container">
-        <div className="overflow-x-auto">
-          <table className={`w-full ${isFrozen && isPreparationSheet ? "border-2 border-blue-400" : ""}`}>
-            <thead className="bg-gray-700">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                  SL. No.
-                </th>
-                {columns.map((column) => (
-                  <th
-                    key={column}
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider"
+                  {processFilters.map((process) => (
+                    <button
+                      key={process}
+                      onClick={() => handleProcessFilter(process)}
+                      className={`px-3 py-1 font-medium text-xs md:text-sm transition-colors rounded ${
+                        selectedProcess === process
+                          ? "bg-blue-600 text-white"
+                          : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                      }`}
+                    >
+                      {process}
+                    </button>
+                  ))}
+                </div>
+                {isPreparationSheet && selectedProcess && (
+                  <Button
+                    onClick={handleFreezeToggle}
+                    disabled={freezeLoading}
+                    size="sm"
+                    className={`w-fit ${
+                      isFrozen
+                        ? "bg-orange-600 hover:bg-orange-700 text-white"
+                        : "bg-blue-600 hover:bg-blue-700 text-white"
+                    }`}
                   >
-                    {column.replace(/([A-Z])/g, " $1").replace(/^./, (str) => str.toUpperCase())}
-                  </th>
-                ))}
-                {selectedProcess !== null && (
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-300 uppercase tracking-wider">
-                    Actions
-                  </th>
+                    {freezeLoading ? (
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    ) : isFrozen ? (
+                      <Play className="h-4 w-4 mr-2" />
+                    ) : (
+                      <Snowflake className="h-4 w-4 mr-2" />
+                    )}
+                    <span>{isFrozen ? "Unfreeze" : "Freeze"} List</span>
+                  </Button>
                 )}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-700">
-              {data.map((item, index) => (
-                <tr key={item.id || index} className="hover:bg-gray-750">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{index + 1}</td>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Mobile Card View */}
+        <div className="block md:hidden">
+          <div className="grid gap-4">
+            {data.map((item, index) => (
+              <KanbanCard
+                key={item.id || index}
+                item={item}
+                index={index}
+                onUpdate={onUpdate}
+                onDelete={onDelete}
+                isPreparationSheet={title === "Preparation List"}
+                showActions={selectedProcess !== null}
+                onRefresh={onRefresh}
+                isFrozen={isFrozen}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Desktop Table View */}
+        <div className="hidden md:block table-container">
+          <div className="overflow-x-auto">
+            <table className={`w-full ${isFrozen && isPreparationSheet ? "border-2 border-blue-400" : ""}`}>
+              <thead className="bg-gray-700">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                    SL. No.
+                  </th>
                   {columns.map((column) => (
-                    <td key={column} className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                      {typeof item[column] === "string" &&
-                      /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z/.test(item[column] as string)
-                        ? new Date(item[column] as string).toLocaleString()
-                        : String(item[column] ?? "-")}
-                    </td>
+                    <th
+                      key={column}
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider"
+                    >
+                      {column.replace(/([A-Z])/g, " $1").replace(/^./, (str) => str.toUpperCase())}
+                    </th>
                   ))}
                   {selectedProcess !== null && (
-                    <td className="px-6 py-4 whitespace-nowrap text-center">
-                      <div className="flex justify-center space-x-2 flex-wrap">
-                        <button
-                          onClick={() => handleAction(item.id, "update")}
-                          disabled={loading[item.id] != null}
-                          className="btn-success p-0 flex items-center justify-center w-8 h-8"
-                          title="Mark as Done"
-                        >
-                          {loading[item.id] === "update" ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <Check className="h-4 w-4" />
-                          )}
-                        </button>
-
-                        {user?.role === "admin" ? (
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <button
-                                disabled={loading[item.id] != null}
-                                className="btn-danger p-0 flex items-center justify-center w-8 h-8"
-                                title="Reject"
-                              >
-                                {loading[item.id] === "delete" ? (
-                                  <Loader2 className="h-4 w-4 animate-spin" />
-                                ) : (
-                                  <X className="h-4 w-4" />
-                                )}
-                              </button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent className="bg-gray-800 border-gray-700">
-                              <AlertDialogHeader>
-                                <AlertDialogTitle className="text-white">Confirm Rejection</AlertDialogTitle>
-                                <AlertDialogDescription className="text-gray-300">
-                                  Are you sure you want to reject this kanban request for{" "}
-                                  <strong>{item.partName}</strong>? This action cannot be undone.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel className="bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600">
-                                  Cancel
-                                </AlertDialogCancel>
-                                <AlertDialogAction
-                                  onClick={() => handleAction(item.id, "delete")}
-                                  className="bg-red-600 hover:bg-red-700 text-white"
-                                >
-                                  Reject
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        ) : (
-                          <button
-                            disabled={loading[item.id] != null}
-                            className="btn-danger p-0 flex items-center justify-center w-8 h-8"
-                            title="Reject"
-                            onClick={() =>
-                              toast({
-                                title: "Not allowed",
-                                description: "You are not allowed to reject kanban requests.",
-                                variant: "destructive",
-                              })
-                            }
-                          >
-                            <X className="h-4 w-4" />
-                          </button>
-                        )}
-                      </div>
-                    </td>
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-300 uppercase tracking-wider">
+                      Actions
+                    </th>
                   )}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-gray-700">
+                {data.map((item, index) => (
+                  <tr key={item.id || index} className="hover:bg-gray-750">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{index + 1}</td>
+                    {columns.map((column) => (
+                      <td key={column} className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                        {typeof item[column] === "string" &&
+                        /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z/.test(item[column] as string)
+                          ? new Date(item[column] as string).toLocaleString()
+                          : String(item[column] ?? "-")}
+                      </td>
+                    ))}
+                    {selectedProcess !== null && (
+                      <td className="px-6 py-4 whitespace-nowrap text-center">
+                        <div className="flex justify-center space-x-2 flex-wrap">
+                          <button
+                            onClick={() => handleAction(item.id, "update")}
+                            disabled={loading[item.id] != null}
+                            className="btn-success p-0 flex items-center justify-center w-8 h-8"
+                            title="Mark as Done"
+                          >
+                            {loading[item.id] === "update" ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Check className="h-4 w-4" />
+                            )}
+                          </button>
+
+                          {user?.role === "admin" ? (
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <button
+                                  disabled={loading[item.id] != null}
+                                  className="btn-danger p-0 flex items-center justify-center w-8 h-8"
+                                  title="Reject"
+                                >
+                                  {loading[item.id] === "delete" ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                  ) : (
+                                    <X className="h-4 w-4" />
+                                  )}
+                                </button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent className="bg-gray-800 border-gray-700">
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle className="text-white">Confirm Rejection</AlertDialogTitle>
+                                  <AlertDialogDescription className="text-gray-300">
+                                    Are you sure you want to reject this kanban request for{" "}
+                                    <strong>{item.partName}</strong>? This action cannot be undone.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel className="bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600">
+                                    Cancel
+                                  </AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => handleAction(item.id, "delete")}
+                                    className="bg-red-600 hover:bg-red-700 text-white"
+                                  >
+                                    Reject
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          ) : (
+                            <button
+                              disabled={loading[item.id] != null}
+                              className="btn-danger p-0 flex items-center justify-center w-8 h-8"
+                              title="Reject"
+                              onClick={() =>
+                                toast({
+                                  title: "Not allowed",
+                                  description: "You are not allowed to reject kanban requests.",
+                                  variant: "destructive",
+                                })
+                              }
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    )}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>

@@ -104,7 +104,7 @@ export default function KanbanLogsPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-6 md:py-8">
+    <div className="container mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-6 md:mb-8 gap-4 flex-wrap">
         <div className="flex items-center space-x-3">
           <History className="h-6 w-6 md:h-8 md:w-8 text-blue-500" />
@@ -151,7 +151,7 @@ export default function KanbanLogsPage() {
             .sort(([a], [b]) => new Date(b).getTime() - new Date(a).getTime())
             .map(([date, dayLogs]) => (
               <div key={date} className="space-y-4">
-                <div className="sticky top-0 md:top-16 bg-gray-900/95 backdrop-blur-sm py-2 z-10">
+                <div className="sticky top-0 md:top-16 bg-gray-900 py-2 z-20">
                   <h2 className="md:text-lg font-semibold text-white border-b border-gray-700 pb-2">
                     {formatDateHeader(date)}
                   </h2>
