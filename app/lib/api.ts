@@ -34,6 +34,64 @@ export async function updateStationPart(id: number, updates: Partial<StationPart
   }
 }
 
+// Refeed a product at a station
+export async function refeedProductAtStation(stationId: number, variant: string): Promise<{ message?: string, error?: string }> {
+  try {
+    const response = await fetch(`${API_BASE}/product-entry-logs/refeed/${stationId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ variant }),
+    });
+    const result = await response.json();
+    if (!response.ok) {
+      return { error: result?.error || "Failed to refeed product" };
+    }
+    return result;
+  } catch (error) {
+    console.error("Error refeeding product:", error);
+    return { error: "Error refeeding product" };
+  }
+}
+
+// Update a product entry log (only productId and timestamp)
+export async function updateProductEntryLog(id: number, updates: { productId: number }): Promise<{ message?: string, error?: string }> {
+  try {
+    const response = await fetch(`${API_BASE}/product-entry-logs/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify(updates),
+    });
+    const result = await response.json();
+    if (!response.ok) {
+      return { error: result?.error || "Failed to update product entry log" };
+    }
+    return result;
+  } catch (error) {
+    console.error("Error updating product entry log:", error);
+    return { error: "Error updating product entry log" };
+  }
+}
+
+// Delete a product entry log
+export async function deleteProductEntryLog(id: number): Promise<{ message?: string, error?: string }> {
+  try {
+    const response = await fetch(`${API_BASE}/product-entry-logs/${id}`, {
+      method: "DELETE",
+      credentials: "include",
+    });
+    const result = await response.json();
+    if (!response.ok) {
+      return { error: result?.error || "Failed to delete product entry log" };
+    }
+    return result;
+  } catch (error) {
+    console.error("Error deleting product entry log:", error);
+    return { error: "Error deleting product entry log" };
+  }
+}
+
 export async function fetchProductEntryLogs(): Promise<any[]> {
   try {
     const response = await fetch(`${API_BASE}/product-entry-logs`, {
