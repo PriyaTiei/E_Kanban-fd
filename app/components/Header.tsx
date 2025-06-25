@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { Factory, Forklift, Package, User, LogOut, History } from "lucide-react"
+import { Factory, Forklift, Package, User, LogOut, Settings } from "lucide-react"
 import { useAuth } from "../contexts/AuthContext"
 import { logoutUser } from "../lib/api"
 import { useToast } from "@/hooks/use-toast"
@@ -89,7 +89,8 @@ export default function Header() {
   }
 
   return (
-    <header className={`sm:hidden md:block bg-gray-800 border-b border-gray-700 sticky top-0 z-50
+    <header
+      className={`sm:hidden md:block bg-gray-800 border-b border-gray-700 sticky top-0 z-50
         transition-transform duration-300 ease-in-out ${showHeader ? "translate-y-0" : "-translate-y-full"}
       `}
       style={{ willChange: "transform" }}
@@ -145,6 +146,18 @@ export default function Header() {
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator className="bg-gray-700" />
+                  {user.role === "admin" && (
+                    <>
+                      <DropdownMenuItem
+                        onClick={() => router.push("/edit-stations")}
+                        className="text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer"
+                      >
+                        <Settings className="mr-2 h-4 w-4" />
+                        <span>Edit Stations</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator className="bg-gray-700" />
+                    </>
+                  )}
                   <DropdownMenuItem
                     onClick={handleLogout}
                     className="text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer"

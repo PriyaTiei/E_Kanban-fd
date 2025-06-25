@@ -2,17 +2,15 @@
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { Factory, Forklift, Package, User, LogOut, History } from "lucide-react"
+import { Factory, Forklift, Package, User, LogOut, History, Settings } from "lucide-react"
 import { useAuth } from "../contexts/AuthContext"
 import { logoutUser } from "../lib/api"
 import { useToast } from "@/hooks/use-toast"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import Image from "next/image"
-import { useState } from "react"
 import SidebarCollapseButton from "./AppSidebarCollapseBtn"
 import { useSidebar } from "../contexts/SideBarContext"
 
-function CustomSidebar({visible = true}: { visible?: boolean }) {
+function CustomSidebar({ visible = true }: { visible?: boolean }) {
   const pathname = usePathname()
   const router = useRouter()
   const { user, logout } = useAuth()
@@ -23,6 +21,7 @@ function CustomSidebar({visible = true}: { visible?: boolean }) {
     { href: "/preparation-list", label: "Preparation List", icon: Package },
     { href: "/supply-list", label: "Supply List", icon: Forklift },
     { href: "/kanban-logs", label: "Kanban Logs", icon: History },
+    ...(user?.role === "admin" ? [{ href: "/edit-stations", label: "Edit Stations", icon: Settings }] : []),
   ]
 
   const handleLogout = async () => {
@@ -59,12 +58,13 @@ function CustomSidebar({visible = true}: { visible?: boolean }) {
   if (!user || !visible) return null
 
   return (
-    <aside className={`fixed top-0 left-0 z-40 h-full w-fit bg-gray-800 border-r border-gray-700 flex-col items-center hidden sm:flex md:hidden
+    <aside
+      className={`fixed top-0 left-0 z-40 h-full w-fit bg-gray-800 border-r border-gray-700 flex-col items-center hidden sm:flex md:hidden
         transition-transform duration-300 ease-in-out
         ${visible ? "translate-x-0" : "-translate-x-full"}
       `}
     >
-        {/* <div className="p-4 flex items-center justify-between">
+      {/* <div className="p-4 flex items-center justify-between">
           <Image
             src="/images/Tiei_logo.png"
             alt="TIEI logo"
@@ -106,9 +106,9 @@ function CustomSidebar({visible = true}: { visible?: boolean }) {
                     </div>
                   </TooltipTrigger>
                   {/* {state === "collapsed" && ( */}
-                    <TooltipContent side="right" className="bg-gray-700 text-white border-gray-600">
-                      {label}
-                    </TooltipContent>
+                  <TooltipContent side="right" className="bg-gray-700 text-white border-gray-600">
+                    {label}
+                  </TooltipContent>
                   {/* )} */}
                 </Tooltip>
               </TooltipProvider>
@@ -119,6 +119,24 @@ function CustomSidebar({visible = true}: { visible?: boolean }) {
 
       {/* Footer */}
       <div className="p-2 justify-self-end">
+        <div className="mb-2">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gray-700 text-gray-300">
+                  <User className="h-4 w-4" />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="right" className="bg-gray-700 text-white border-gray-600">
+                <div className="text-xs">
+                  <p className="font-medium">{user.username}</p>
+                  <p className={`${getRoleColor(user.role)} capitalize`}>{user.role}</p>
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -131,9 +149,9 @@ function CustomSidebar({visible = true}: { visible?: boolean }) {
               </button>
             </TooltipTrigger>
             {/* {state === "collapsed" && ( */}
-              <TooltipContent side="right" className="bg-gray-700 text-white border-gray-600">
-                Log out
-              </TooltipContent>
+            <TooltipContent side="right" className="bg-gray-700 text-white border-gray-600">
+              Log out
+            </TooltipContent>
             {/* )} */}
           </Tooltip>
         </TooltipProvider>
@@ -148,9 +166,7 @@ export default function AppSidebar() {
   return (
     <div>
       {/* Collapse button (only on sm screens) */}
-      <SidebarCollapseButton
-        onClick={toggle}
-      />
+      <SidebarCollapseButton onClick={toggle} />
       {/* Sidebar (only on sm screens) */}
       <CustomSidebar visible={visible} />
     </div>
