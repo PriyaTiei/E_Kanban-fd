@@ -253,14 +253,14 @@ export default function ProductionLine() {
                     {stations.reduce(
                       (acc, station) =>
                         acc +
-                        station.parts.filter((part: any) => part.currentQuantity / part.binQuantity <= 0.2).length,
+                        station.parts.filter((part: any) => part.currentQuantity / part.consumptionPerProduct <= 2).length,
                       0,
                     )}
                   </div>
                   <div className="flex items-center gap-2 flex-nowrap overflow-x-auto">
                     {stations
                       .filter((station) =>
-                        station.parts.some((part: any) => part.currentQuantity / part.binQuantity <= 0.2),
+                        station.parts.some((part: any) => part.currentQuantity / part.consumptionPerProduct <= 2),
                       )
                       .map((station) => (
                         <div key={station.id} className="w-max p-2 border border-red-300 rounded-md text-xs text-red-300">

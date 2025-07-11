@@ -1,6 +1,6 @@
-import { ActionResponse, ErrorResponse, KanbanItem, KanbanLogItem, KanbanModifyDetails, PreparationKanbanResponse, StationPart, User } from "./types"
+import { ActionResponse, ErrorResponse, KanbanItem, KanbanLogItem, KanbanModifyDetails, PreparationKanbanResponse, Product, StationPart, User } from "./types"
 
-const API_BASE = "http://10.82.126.73:3058"
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE!;
 
 export async function fetchStationParts(): Promise<any[]> {
   try {
@@ -237,13 +237,10 @@ export async function updatePreparationKanban(updateKanban:KanbanModifyDetails):
 
 export async function deletePreparationKanban(deleteKanban: KanbanModifyDetails): Promise<boolean> {
   try {
-    const params = new URLSearchParams({
-      kanbanId: String(deleteKanban.kanbanId),
-    }).toString();
-
-    const response = await fetch(`${API_BASE}/preparation-sheet/kanban?${params}`, {
+    const response = await fetch(`${API_BASE}/preparation-sheet/kanban`, {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(deleteKanban),
       credentials: "include",
     });
     return response.ok;
@@ -270,13 +267,10 @@ export async function updateSupplyKanban(updateKanban:KanbanModifyDetails): Prom
 
 export async function deleteSupplyKanban(deleteKanban: KanbanModifyDetails): Promise<boolean> {
   try {
-    const params = new URLSearchParams({
-      kanbanId: String(deleteKanban.kanbanId),
-    }).toString();
-
-    const response = await fetch(`${API_BASE}/supply-sheet/kanban?${params}`, {
+    const response = await fetch(`${API_BASE}/supply-sheet/kanban`, {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(deleteKanban),
       credentials: "include",
     });
     return response.ok;
@@ -286,7 +280,7 @@ export async function deleteSupplyKanban(deleteKanban: KanbanModifyDetails): Pro
   }
 }
 
-export async function fetchProductVariants(): Promise<any[]> {
+export async function fetchProductVariants(): Promise<Product[]> {
   try {
     const response = await fetch(`${API_BASE}/product-variants`, {
       credentials: "include",

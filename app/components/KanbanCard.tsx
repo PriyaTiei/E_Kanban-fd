@@ -24,50 +24,16 @@ import { formatDate } from "../lib/helpers"
 interface KanbanCardProps {
   item: KanbanItem
   index: number
-  onUpdate: (updateKanban: KanbanModifyDetails) => Promise<boolean>
-  onDelete: (deleteKanban: KanbanModifyDetails) => Promise<boolean>
+  handleAction: (kanbanIds: number[], action: "update" | "delete") => Promise<void>,
   showActions: boolean
-  onRefresh?: () => void
   isFrozen: boolean
+  loading: "update" | "delete" | null
   isPreparationSheet: boolean
 }
 
-export default function KanbanCard({ item, index, onUpdate, onDelete, showActions, onRefresh, isFrozen, isPreparationSheet }: KanbanCardProps) {
+export default function KanbanCard({ item, index, handleAction, showActions, isFrozen, loading, isPreparationSheet }: KanbanCardProps) {
   const { user } = useAuth()
-  const [loading, setLoading] = useState<"update" | "delete" | null>(null)
   const { toast } = useToast()
-
-  const handleAction = async (action: "update" | "delete") => {
-    setLoading(action)
-
-    try {
-      const modifyDetails = { kanbanId: item.id }
-      const success = action === "update" ? await onUpdate(modifyDetails) : await onDelete(modifyDetails)
-
-      if (success) {
-        toast({
-          title: action === "update" ? "Kanban Updated" : "Kanban Deleted",
-          description: `Kanban item has been successfully ${action === "update" ? "marked as done" : "rejected"}.`,
-        })
-        onRefresh?.()
-      } else {
-        toast({
-          title: "Action Failed",
-          description: `Failed to ${action} kanban item.`,
-          variant: "destructive",
-        })
-      }
-    } catch (error) {
-      console.error(`Error ${action}ing kanban:`, error)
-      toast({
-        title: "Error",
-        description: `An error occurred while ${action}ing the kanban item.`,
-        variant: "destructive",
-      })
-    } finally {
-      setLoading(null)
-    }
-  }
 
   return (
     <Card className={`bg-gray-800 ${isFrozen && isPreparationSheet ? 'border-blue-400/70' : 'border-gray-700'} transition-colors`}>
@@ -107,25 +73,11 @@ export default function KanbanCard({ item, index, onUpdate, onDelete, showAction
             </div>
           </div>
 
-          {/* Additional Details */}
-          {/* <div className="grid grid-cols-2 gap-3 text-sm">
-            {item.plantName && (
-              <div>
-                <span className="text-gray-400">Plant:</span>
-                <span className="ml-2 text-white">{item.plantName}</span>
-              </div>
-            )}
-            <div>
-              <span className="text-gray-400">Requested:</span>
-              <span className="ml-2 text-white">{new Date(item.requestedAt).toLocaleString()}</span>
-            </div>
-          </div> */}
-
           {/* Action Buttons */}
           {showActions && (
             <div className="p-2 flex flex-col gap-2 flex-wrap">
               <Button
-                onClick={() => handleAction("update")}
+                onClick={() => handleAction([item.id],"update")}
                 disabled={loading !== null}
                 className="flex-1 bg-green-600 hover:bg-green-700 text-white"
                 size="sm"
@@ -163,7 +115,7 @@ export default function KanbanCard({ item, index, onUpdate, onDelete, showAction
                         Cancel
                       </AlertDialogCancel>
                       <AlertDialogAction
-                        onClick={() => handleAction("delete")}
+                        onClick={() => handleAction([item.id], "delete")}
                         className="bg-red-600 hover:bg-red-700 text-white"
                       >
                         Reject

@@ -11,6 +11,7 @@ import { KanbanSquare, Loader2 } from "lucide-react"
 import { loginUser } from "../lib/api"
 import { useAuth } from "../contexts/AuthContext"
 import { useToast } from "@/hooks/use-toast"
+import Image from "next/image"
 
 export default function LoginPage() {
   const [username, setUsername] = useState("")
@@ -54,20 +55,27 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-900 px-4">
-      <Card className="w-full max-w-md bg-gray-800 border-gray-700">
+      <Card className="my-2 w-full max-w-sm md:max-w-md bg-gray-800 border-gray-700">
         <CardHeader className="text-center">
-          <div className="flex justify-center mb-4">
-            <KanbanSquare className="h-12 w-12 text-blue-500" />
+          <div className="flex max-h-16 justify-center">
+            <Image
+              src="/images/Tiei_logo.png"
+              alt="TIEI logo"
+              width={90}
+              height={40}
+              className="h-24 w-auto object-cover object-bottom"
+              priority
+            />
           </div>
-          <CardTitle className="text-2xl font-bold text-white">E-Kanban System</CardTitle>
-          <CardDescription className="text-gray-400">
+          <CardTitle className="text-xl md:text-2xl font-bold text-white">E-Kanban System</CardTitle>
+          <CardDescription className="text-sm md:text-base text-gray-400">
             Sign in to access the production management dashboard
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <label htmlFor="username" className="text-sm font-medium text-gray-300">
+              <label htmlFor="username" className="text-xs md:text-sm font-medium text-gray-300">
                 Username
               </label>
               <Input
@@ -76,12 +84,12 @@ export default function LoginPage() {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
-                className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+                className="bg-gray-700 border-gray-600 text-xs md:text-sm text-white placeholder-gray-400"
                 placeholder="Enter your username"
               />
             </div>
             <div className="space-y-2">
-              <label htmlFor="password" className="text-sm font-medium text-gray-300">
+              <label htmlFor="password" className="text-xs md:text-sm font-medium text-gray-300">
                 Password
               </label>
               <Input
@@ -90,11 +98,11 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+                className="bg-gray-700 border-gray-600 text-xs md:text-sm text-white placeholder-gray-400"
                 placeholder="Enter your password"
               />
             </div>
-            <Button type="submit" disabled={loading} className="w-full bg-blue-600 hover:bg-blue-700 text-white">
+            <Button type="submit" disabled={loading} className="w-full bg-blue-600 hover:bg-blue-700 text-xs md:text-sm text-white">
               {loading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />

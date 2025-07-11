@@ -67,6 +67,11 @@ export interface Station {
   currentProduct?: ProductEntryLog
 }
 
+export interface Product {
+  id: number
+  variant: string
+}
+
 export interface StationsCurrentStatus {
   id: number
   name: string
@@ -75,7 +80,7 @@ export interface StationsCurrentStatus {
 }
 
 export interface KanbanModifyDetails {
-  kanbanId:number 
+  kanbanIds: number[]
 }
 
 export interface ErrorResponse {

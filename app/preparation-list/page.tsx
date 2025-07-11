@@ -22,6 +22,8 @@ function PreparationListContent() {
       const queryParams = selectedProcess ? { process: selectedProcess } : undefined
       const result = await fetchPreparationKanbans(queryParams)
       setProcessFilters(result?.processes || null)
+      console.log("Fetched result:", result || "No result");
+      
       setData(result?.kanbans || []);
       setIsFrozenData(result?.isFrozenData || false)
     } catch (error) {
@@ -37,17 +39,12 @@ function PreparationListContent() {
 
   if (loading) {
     return (
-      // <div className="container mx-auto px-4 py-8">
-      //   <div className="card">
-      //     <div className="text-center py-8 text-gray-400">Loading...</div>
-      //   </div>
-      // </div>
       <Loading />
     )
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container min-h-screen mx-auto px-4 py-8">
       <KanbanTable
         data={data}
         processFilters={processFilters}
@@ -64,11 +61,6 @@ export default function PreparationListTableClient() {
   return (
     <Suspense
       fallback={
-        // <div className="container mx-auto px-4 py-8">
-        //   <div className="card h-screen">
-        //     <div className="text-center py-8 text-gray-400">Loading...</div>
-        //   </div>
-        // </div>
         <Loading />
       }
     >

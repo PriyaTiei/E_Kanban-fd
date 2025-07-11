@@ -161,7 +161,14 @@ function CustomSidebar({ visible = true }: { visible?: boolean }) {
 }
 
 export default function AppSidebar() {
-  const { visible, toggle } = useSidebar()
+  const { visible, setVisible, toggle } = useSidebar()
+  const { user } = useAuth()
+
+  // If user is not logged in, hide sidebar and do not render anything
+  if (!user) {
+    if (visible) setVisible(false)
+    return null
+  }
 
   return (
     <div>

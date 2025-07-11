@@ -13,13 +13,13 @@ import {
   deleteProductEntryLog,
   refeedProductAtStation,
 } from "../lib/api"
-import type { StationPart, ProductEntryLog } from "../lib/types"
+import type { StationPart, ProductEntryLog, Product } from "../lib/types"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Trash2, RefreshCw, Save, Package, AlertTriangle, CheckCircle } from "lucide-react"
+import { Trash2, RefreshCw, Save, Package, AlertTriangle, CheckCircle, PackagePlus, X } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import {
@@ -54,9 +54,10 @@ export default function EditStations() {
   const router = useRouter()
   const { toast } = useToast()
   const [stations, setStations] = useState<StationData[]>([])
-  const [productVariants, setProductVariants] = useState<any[]>([])
+  const [productVariants, setProductVariants] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState<{ [key: string]: boolean }>({})
+  const [refeed, setRefeed] = useState<{ [key: string]: boolean }>({})
 
   useEffect(() => {
     if (!user) return
@@ -157,7 +158,7 @@ export default function EditStations() {
 
       const result = await updateStationPart(part.id, updates)
 
-      if ("error" in result) {
+      if (result && "error" in result) {
         throw new Error(result.error)
       }
 
@@ -276,6 +277,7 @@ export default function EditStations() {
 
       // Reload data to get the updated product
       await loadData()
+      setRefeed((prev) => ({ ...prev, [stationId]: !prev[stationId] }))
 
       toast({
         title: "Success",
@@ -328,7 +330,7 @@ export default function EditStations() {
 
   if (loading) {
     return (
-      <div className="container mx-auto p-4 sm:ml-12 md:ml-0">
+      <div className="container mx-auto px-4 py-8 sm:ml-12 md:ml-0">
         <div className="flex items-center justify-center min-h-[50vh]">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
@@ -340,32 +342,48 @@ export default function EditStations() {
   }
 
   return (
-    <div className="container mx-auto p-4 sm:ml-12 md:ml-0 space-y-6">
+    <div className="container mx-auto px-4 py-8 space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-white">Edit Stations</h1>
-        <Button variant="outline" onClick={loadData} className="border-gray-600 text-gray-300 hover:bg-gray-700">
-          <RefreshCw className="h-4 w-4 mr-2" />
+        <button onClick={loadData} className="btn-primary flex items-center">
+          <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />
           Refresh
-        </Button>
+        </button>
       </div>
 
-      <div className="grid gap-6">
+      <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-5">
         {stations.map((station) => (
-          <Card key={station.id} className="bg-gray-800 border-gray-700">
+          <Card key={station.id} className="w-full bg-gray-800 border-gray-700">
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
                 <Package className="h-5 w-5" />
                 {station.name}
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="w-full space-y-6">
               {/* Current Product Section */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-300">Current Product</h3>
-                {station.currentProduct ? (
+                <div className="flex items-center justify-between flex-wrap gap-4">
+                  <h3 className="text-lg font-semibold text-gray-300">Current Product</h3>
+                  {
+                    <Button
+                      onClick={() => setRefeed((prev) => ({ ...prev, [station.id]: !prev[station.id] }))}
+                      size="sm"
+                      className={`${!refeed[station.id] ? "bg-blue-600 hover:bg-blue-700" : "bg-red-500 hover:bg-red-600"} text-white`}
+                    >
+                      {!refeed[station.id] ?
+                        <PackagePlus className="h-4 w-4 mr-1" />
+                      :
+                        <X className="h-4 w-4 mr-1" />
+                      }
+                      {!refeed[station.id] ? "Refeed" : "Cancel"}
+                    </Button>
+                  }
+                </div>
+                {station.currentProduct && !refeed[station.id] ? (
                   <div className="bg-gray-700/50 p-4 rounded-lg space-y-4">
                     <div className="flex flex-col sm:flex-row gap-4">
-                      <div className="flex-1">
+                      <div className="flex-1 flex flex-col gap-2">
                         <Label htmlFor={`product-${station.id}`} className="text-gray-300">
                           Product Variant
                         </Label>
@@ -377,27 +395,27 @@ export default function EditStations() {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent className="bg-gray-800 border-gray-600">
-                            {productVariants.map((variant) => (
-                              <SelectItem key={variant.id} value={variant.id.toString()}>
-                                Variant {variant.name}
+                            {productVariants.map((product) => (
+                              <SelectItem key={product.id} value={product.id.toString()}>
+                                Variant {product.variant}
                               </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex flex-wrap sm:flex-col gap-2">
                         <Button
                           onClick={() => saveProduct(station.id, station.currentProduct!)}
                           disabled={!station.currentProduct.isEdited || saving[`product-${station.currentProduct.id}`]}
                           size="sm"
-                          className="bg-blue-600 hover:bg-blue-700"
+                          className="bg-blue-600 hover:bg-blue-700 text-white"
                         >
                           <Save className="h-4 w-4 mr-1" />
                           Save
                         </Button>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                            <Button variant="destructive" size="sm">
+                            <Button size="sm" className="bg-red-500 hover:bg-red-600 text-white">
                               <Trash2 className="h-4 w-4 mr-1" />
                               Remove
                             </Button>
@@ -415,7 +433,7 @@ export default function EditStations() {
                               </AlertDialogCancel>
                               <AlertDialogAction
                                 onClick={() => deleteProduct(station.id, station.currentProduct!.id)}
-                                className="bg-red-600 hover:bg-red-700"
+                                className="bg-red-500 hover:bg-red-600"
                               >
                                 Remove
                               </AlertDialogAction>
@@ -430,18 +448,24 @@ export default function EditStations() {
                   </div>
                 ) : (
                   <div className="bg-gray-700/50 p-4 rounded-lg">
-                    <p className="text-gray-400 mb-4">No product currently at this station</p>
+                    <p className="text-gray-400 mb-4">
+                      { !refeed[station.id] ?
+                        "No product currently at this station"
+                      :
+                        "Select the reworked variant to refeed at this station"
+                      }
+                    </p>
                     <div className="flex flex-col sm:flex-row gap-4">
-                      <div className="flex-1">
-                        <Label className="text-gray-300">Refeed Product Variant</Label>
+                      <div className="flex-1 flex flex-col gap-2">
+                        <Label className="text-gray-300">Refeed Variant</Label>
                         <Select onValueChange={(value) => refeedProduct(station.id, value)}>
                           <SelectTrigger className="bg-gray-800 border-gray-600 text-white">
                             <SelectValue placeholder="Select variant to refeed" />
                           </SelectTrigger>
                           <SelectContent className="bg-gray-800 border-gray-600">
-                            {productVariants.map((variant) => (
-                              <SelectItem key={variant.id} value={variant.name}>
-                                Variant {variant.name}
+                            {productVariants.map((product) => (
+                              <SelectItem key={product.id} value={product.variant}>
+                                Variant {product.variant}
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -455,12 +479,12 @@ export default function EditStations() {
               <Separator className="bg-gray-600" />
 
               {/* Parts Section */}
-              <div className="space-y-4">
+              <div className="w-full space-y-4">
                 <h3 className="text-lg font-semibold text-gray-300">Parts Inventory</h3>
                 {station.parts.length === 0 ? (
                   <p className="text-gray-400">No parts assigned to this station</p>
                 ) : (
-                  <div className="grid gap-4">
+                  <div className="w-full grid gap-4">
                     {station.parts
                       .slice()
                       .sort((a, b) => {
@@ -477,53 +501,55 @@ export default function EditStations() {
                       .map((part) => {
                         const status = getQuantityStatus(part.currentQuantity, part.consumptionPerProduct)
                         return (
-                          <div key={part.id} className="bg-gray-700/50 p-4 rounded-lg space-y-4">
-                            <div className="flex items-center gap-2">
+                          <div key={part.id} className="w-full bg-gray-700/50 p-4 rounded-lg space-y-4">
+                            <div className="flex items-center gap-2 flex-wrap">
                               {getStatusIcon(status)}
                               <h4 className="font-medium text-white">Part {part.partName}</h4>
-                              <Badge variant="outline" className={`${getStatusColor(status)} border-current`}>
+                              <Badge variant="outline" className={`${getStatusColor(status)} border-current text-xs`}>
                                 {part.consumptionPerProduct > 0
                                   ? `${Math.round(part.currentQuantity / part.consumptionPerProduct)} cycles left`
                                   : "No consumption"}
                               </Badge>
                               {part.isEdited && (
-                                <Badge variant="secondary" className="bg-yellow-600 text-white">
+                                <Badge variant="secondary" className="bg-yellow-500 text-xs text-white">
                                   Modified
                                 </Badge>
                               )}
                             </div>
 
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                              <div>
-                                <Label htmlFor={`current-${part.id}`} className="text-gray-300">
-                                  Current Quantity
-                                </Label>
-                                <Input
-                                  id={`current-${part.id}`}
-                                  type="number"
-                                  value={part.currentQuantity}
-                                  onChange={(e) =>
-                                    updatePartField(station.id, part.id, "currentQuantity", Number(e.target.value))
-                                  }
-                                  className="bg-gray-800 border-gray-600 text-white"
-                                />
+                            <div className="w-full flex flex-wrap gap-4">
+                              <div className="flex flex-col md:flex-row md:justify-between gap-4">
+                                <div>
+                                  <Label htmlFor={`current-${part.id}`} className="text-xs text-gray-300">
+                                    Current Quantity
+                                  </Label>
+                                  <Input
+                                    id={`current-${part.id}`}
+                                    type="number"
+                                    value={part.currentQuantity}
+                                    onChange={(e) =>
+                                      updatePartField(station.id, part.id, "currentQuantity", Number(e.target.value))
+                                    }
+                                    className="w-full bg-gray-800 border-gray-600 text-white"
+                                  />
+                                </div>
+                                <div>
+                                  <Label htmlFor={`bin-${part.id}`} className="text-xs text-gray-300">
+                                    Bin Quantity
+                                  </Label>
+                                  <Input
+                                    id={`bin-${part.id}`}
+                                    type="number"
+                                    value={part.binQuantity}
+                                    onChange={(e) =>
+                                      updatePartField(station.id, part.id, "binQuantity", Number(e.target.value))
+                                    }
+                                    className="w-full bg-gray-800 border-gray-600 text-white"
+                                  />
+                                </div>
                               </div>
                               <div>
-                                <Label htmlFor={`bin-${part.id}`} className="text-gray-300">
-                                  Bin Quantity
-                                </Label>
-                                <Input
-                                  id={`bin-${part.id}`}
-                                  type="number"
-                                  value={part.binQuantity}
-                                  onChange={(e) =>
-                                    updatePartField(station.id, part.id, "binQuantity", Number(e.target.value))
-                                  }
-                                  className="bg-gray-800 border-gray-600 text-white"
-                                />
-                              </div>
-                              <div>
-                                <Label htmlFor={`consumption-${part.id}`} className="text-gray-300">
+                                <Label htmlFor={`consumption-${part.id}`} className="text-xs text-gray-300">
                                   Consumption/Product
                                 </Label>
                                 <Input
@@ -539,7 +565,7 @@ export default function EditStations() {
                                       Number(e.target.value),
                                     )
                                   }
-                                  className="bg-gray-800 border-gray-600 text-white"
+                                  className="w-full bg-gray-800 border-gray-600 text-white"
                                 />
                               </div>
                             </div>
@@ -549,7 +575,7 @@ export default function EditStations() {
                                 onClick={() => savePart(station.id, part)}
                                 disabled={!part.isEdited || saving[`part-${part.id}`]}
                                 size="sm"
-                                className="bg-blue-600 hover:bg-blue-700"
+                                className="bg-blue-600 hover:bg-blue-700 text-white"
                               >
                                 <Save className="h-4 w-4 mr-1" />
                                 {saving[`part-${part.id}`] ? "Saving..." : "Save Part"}
