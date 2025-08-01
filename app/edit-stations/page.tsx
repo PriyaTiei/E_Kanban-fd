@@ -33,6 +33,9 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu"
+import { BreadcrumbEllipsis } from "@/components/ui/breadcrumb"
+import FileUpload from "../components/FileUpload"
 
 interface EditableStationPart extends StationPart {
   isEdited?: boolean
@@ -58,6 +61,7 @@ export default function EditStations() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState<{ [key: string]: boolean }>({})
   const [refeed, setRefeed] = useState<{ [key: string]: boolean }>({})
+  const [fileUploadOpen, setFileUploadOpen] = useState(false)
 
   useEffect(() => {
     if (!user) return
@@ -345,10 +349,28 @@ export default function EditStations() {
     <div className="container mx-auto px-4 py-8 space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-white">Edit Stations</h1>
-        <button onClick={loadData} className="btn-primary flex items-center">
-          <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />
-          Refresh
-        </button>
+        <div className="flex items-center space-x-4">
+          <button onClick={loadData} className="btn-primary flex items-center">
+            <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />
+            Refresh
+          </button>
+          <div>
+            <DropdownMenu>
+              <DropdownMenuTrigger>
+                <BreadcrumbEllipsis />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="bg-gray-900 border border-gray-700 rounded-md py-3 px-2 flex flex-col gap-2">
+                <DropdownMenuItem>
+                  <button className="w-full py-1 px-2 hover:bg-slate-800" onClick={() => setFileUploadOpen(true)}>
+                    Upload File
+                  </button>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <FileUpload fileUploadOpen={fileUploadOpen} setFileUploadOpen={setFileUploadOpen} />
+          </div>
+        </div>
+
       </div>
 
       <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-5">

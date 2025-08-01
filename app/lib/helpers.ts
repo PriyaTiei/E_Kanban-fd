@@ -8,3 +8,24 @@ export const formatDate = (dateString: string) => {
     }
     return date.toLocaleString()
 }
+
+export const fileFormat = {
+    expectedSheets: [
+        'products', 'stations', 'parts', 'stationParts', 'productPartExceptions', 
+    ],
+    expectedProductHeaders: [
+        "variant",
+    ],
+    expectedStationsHeaders: [
+        "name", "plant",
+    ],
+    expectedPartsHeaders: [
+        "partId", "partNumber", "name",
+    ],
+    expectedStationPartsHeaders: [
+        "station", "part", "allowed_for_all_products", "consumptionPerProduct", "binQuantity", "currentQuantity", "process", "prepLocation", "supplyLocation",
+    ],
+    expectedProductPartExceptionsHeaders: [
+        "part", "product",
+    ]
+}

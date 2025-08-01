@@ -347,7 +347,7 @@ export async function loginUser(username: string, password: string): Promise<Use
     })
     
     if (!response.ok) throw new Error("Authentication failed")
-    
+    console.log("Response from login:", response);
     return await response.json()
   } catch (error) {
     console.error("Error authenticating user:", error)
@@ -398,5 +398,40 @@ export async function fetchKanbanLogs(): Promise<KanbanLogItem[]> {
   } catch (error) {
     console.error("Error fetching kanban logs:", error)
     return []
+  }
+}
+
+export const uploadFile = async (file:File, onProgress: (progress: number)=> void) => {
+  const CHUNK_SIZE = 1 * 1024 * 1024;
+  const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+  const fileId = `${file.name}-${Date.now()}`;
+
+  for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
+    const start = chunkIndex * CHUNK_SIZE;
+    const end = Math.min(start + CHUNK_SIZE, file.size);
+    const chunk: Blob = file.slice(start, end);
+
+    const formData = new FormData();
+    formData.append('chunk', chunk);
+    formData.append('fileName', file.name);
+    formData.append('fileId', fileId);
+    formData.append('chunkIndex', chunkIndex as unknown as string);
+    formData.append('totalChunks', totalChunks as unknown as string);
+
+    try {
+      const response = await fetch(`${API_BASE}/upload/excel-update`, {
+        method: 'POST',
+        body: formData,
+        credentials: "include",
+      });
+
+      if (!response.ok) throw new Error(`Chunk ${chunkIndex} failed.`);
+      const percent = Math.round(((chunkIndex + 1) / totalChunks) * 100);
+      onProgress(percent);
+
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
   }
 }
