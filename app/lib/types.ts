@@ -3,6 +3,7 @@ export interface StationPart {
   stationId: number
   stationName: string
   partId: number
+  partIdNo: number
   partName: string
   productId?: number
   productName?: string 
@@ -26,6 +27,7 @@ export interface ProductEntryLog {
 export interface KanbanItem {
   id: number
   partId: number
+  partIdNo: number
   partName: string
   process: number
   prepLocation?: string
@@ -40,6 +42,7 @@ export interface KanbanLogItem {
   stationId: number
   stationName: string
   partId: number
+  partIdNo: number
   partName: string
   process: number
   prepLocation?: string

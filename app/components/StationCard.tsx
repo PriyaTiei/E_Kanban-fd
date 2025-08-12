@@ -83,7 +83,7 @@ export default function StationCard({ station, refilledParts = new Set() }: Stat
                     <div className="flex flex-col">
                       <div className="flex items-center space-x-2">
                         {getStatusIcon(status)}
-                        <span className="text-sm font-medium">Part {part.partName}</span>
+                        <span className="text-sm font-medium">Part {part.partIdNo}</span>
                         {isRefilled && (
                           <div title="Recently refilled"><KanbanSquare className="h-4 w-4 text-blue-400 animate-pulse" /></div>
                         )}

@@ -147,6 +147,7 @@ export default function KanbanTable({
     const commonFilters = [
       "id",
       "partId",
+      "partName",
     ]
     return !commonFilters.includes(key)
   }) as Partial<keyof KanbanItem>[] : [] as Partial<keyof KanbanItem>[]

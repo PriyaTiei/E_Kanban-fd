@@ -55,7 +55,7 @@ export default function KanbanCard({ item, index, handleAction, showActions, isF
                   {/* Part Name - Highlighted */}
                   <div className="flex items-center space-x-2">
                     <Package className="h-4 w-4 text-blue-400" />
-                    <span className="font-semibold text-white text-sm">{item.partName}</span>
+                    <span className="font-semibold text-white text-sm">{item.partIdNo}</span>
                   </div>
 
                   {/* Station Name - Highlighted */}

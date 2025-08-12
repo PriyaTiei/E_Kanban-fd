@@ -526,7 +526,7 @@ export default function EditStations() {
                           <div key={part.id} className="w-full bg-gray-700/50 p-4 rounded-lg space-y-4">
                             <div className="flex items-center gap-2 flex-wrap">
                               {getStatusIcon(status)}
-                              <h4 className="font-medium text-white">Part {part.partName}</h4>
+                              <h4 className="font-medium text-white">Part {part.partIdNo}</h4>
                               <Badge variant="outline" className={`${getStatusColor(status)} border-current text-xs`}>
                                 {part.consumptionPerProduct > 0
                                   ? `${Math.round(part.currentQuantity / part.consumptionPerProduct)} cycles left`

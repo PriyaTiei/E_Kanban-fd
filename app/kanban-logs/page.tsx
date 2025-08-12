@@ -187,7 +187,7 @@ export default function KanbanLogsPage() {
                                         <div className="flex items-center space-x-4">
                                           <div className="flex items-center space-x-2">
                                             <Package className="h-4 w-4 text-blue-400" />
-                                            <span className="text-gray-300">{log.partName}</span>
+                                            <span className="text-gray-300">{log.partIdNo}</span>
                                           </div>
                                         </div>
                                         <span
