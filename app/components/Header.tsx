@@ -149,11 +149,11 @@ export default function Header() {
                   {user.role === "admin" && (
                     <>
                       <DropdownMenuItem
-                        onClick={() => router.push("/edit-stations")}
+                        onClick={() => router.push("/settings")}
                         className="text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer"
                       >
                         <Settings className="mr-2 h-4 w-4" />
-                        <span>Edit Stations</span>
+                        <span>Settings</span>
                       </DropdownMenuItem>
                       <DropdownMenuSeparator className="bg-gray-700" />
                     </>

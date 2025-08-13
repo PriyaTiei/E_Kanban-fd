@@ -1,8 +1,8 @@
-import { ActionResponse, ErrorResponse, KanbanItem, KanbanLogItem, KanbanModifyDetails, PreparationKanbanResponse, Product, StationPart, User } from "./types"
+import { ActionResponse, ErrorResponse, KanbanCreateRequest, KanbanItem, KanbanLogItem, KanbanModifyDetails, PreparationKanbanResponse, Product, StationPart, User } from "./types"
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE!;
 
-export async function fetchStationParts(): Promise<any[]> {
+export async function fetchStationParts(): Promise<StationPart[]> {
   try {
     const response = await fetch(`${API_BASE}/station-parts`, {
       credentials: "include",
@@ -213,6 +213,25 @@ export async function fetchSupplyKanbansCount() {
   } catch (error) {
     console.error("Error fetching supply kanbans count:", error)
     return []
+  }
+}
+
+export async function createPreparationKanban(newKanban:KanbanCreateRequest[]): Promise<boolean> {
+  try {
+    console.log("Creating new preparation kanban:", newKanban);
+    
+    const response = await fetch(`${API_BASE}/preparation-sheet/kanbans/create`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newKanban),
+      credentials: "include",
+    })
+    console.log("Response:", response.json);
+    
+    return response.ok
+  } catch (error) {
+    console.error("Error updating preparation kanban:", error)
+    return false
   }
 }
 

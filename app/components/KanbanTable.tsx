@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Check, X, Loader2, History, Snowflake, Play } from "lucide-react"
+import { Check, X, Loader2, History, Snowflake, Play, CircleCheck, CircleCheckBig, CircleX } from "lucide-react"
 import Link from "next/link"
 import type { KanbanItem, KanbanModifyDetails } from "../lib/types"
 import { useToast } from "@/hooks/use-toast"
@@ -23,6 +23,7 @@ import { freezeProcess, unfreezeProcess } from "../lib/api"
 import KanbanCard from "./KanbanCard"
 import { Breadcrumb, BreadcrumbEllipsis, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu"
+import KanbanRequestsForm from "./KanbansRequestForm"
 
 interface KanbanTableProps {
   data: KanbanItem[]
@@ -46,6 +47,7 @@ export default function KanbanTable({
   const { user } = useAuth()
   const [loading, setLoading] = useState<{ [key: number]: "update" | "delete" | null }>({})
   const [freezeLoading, setFreezeLoading] = useState(false)
+  const [requestFormOpen, setRequestFormOpen] = useState(false)
   const { toast } = useToast()
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -229,19 +231,33 @@ export default function KanbanTable({
                     <DropdownMenuTrigger>
                       <BreadcrumbEllipsis />
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent className="bg-gray-900 border-gray-700 rounded-md py-3 px-2 flex flex-col gap-2">
+                    <DropdownMenuContent className="bg-gray-900 border border-gray-700 rounded-md py-3 px-2 flex flex-col gap-2 text-xs">
+                      { user?.role === "admin" && title === "Preparation List" &&
+                        <>
+                          <DropdownMenuItem>
+                            <button className="w-full px-2 py-1 rounded" onClick={() => setRequestFormOpen(true)}>
+                              Raise a Kanban Request
+                            </button>
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator className="h-[1px] bg-gray-700" />
+                        </>
+                      }
                       <DropdownMenuItem>
-                        <button className="w-full px-2 py-1 bg-green-600 rounded" onClick={() => handleAction(data.map(item => item.id), "update")}>
+                        <button className="w-full px-2 py-1 rounded flex items-center" onClick={() => handleAction(data.map(item => item.id), "update")}>
+                          <CircleCheckBig className="h-6 w-6 p-[0.125rem] mr-2 bg-green-600 text-black rounded-full" />
                           Mark all as done
                         </button>
                       </DropdownMenuItem>
+                      <DropdownMenuSeparator className="h-[1px] bg-gray-700" />
                       <DropdownMenuItem>
-                        <button className="w-full px-2 py-1 bg-red-600/90 rounded" onClick={() => handleAction(data.map(item => item.id), "delete")}>
+                        <button className="w-full px-2 py-1 rounded flex items-center" onClick={() => handleAction(data.map(item => item.id), "delete")}>
+                          <CircleX className="h-6 w-6 p-[0.125rem] mr-2 bg-red-600/90 text-black rounded-full" />
                           Reject all
                         </button>
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
+                  <KanbanRequestsForm requestFormOpen={requestFormOpen} setRequestFormOpen={setRequestFormOpen} />
                 </div>
               </div>
             </div>
@@ -291,23 +307,6 @@ export default function KanbanTable({
                     {selectedProcess !== null && (
                       <th className="px-6 py-3 text-center text-xs font-medium text-gray-300 uppercase tracking-wider flex items-center justify-center">
                         <span>Actions</span>
-                        {/* <DropdownMenu>
-                          <DropdownMenuTrigger>
-                            <BreadcrumbEllipsis />
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent className="bg-gray-900 border-gray-700 rounded-md py-3 px-2 flex flex-col gap-2">
-                            <DropdownMenuItem>
-                              <button className="w-full px-2 py-1 bg-green-600 rounded" onClick={() => handleAction(data.map(item => item.id), "update")}>
-                                Mark all as done
-                              </button>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
-                              <button className="w-full px-2 py-1 bg-red-600/90 rounded" onClick={() => handleAction(data.map(item => item.id), "delete")}>
-                                Reject all
-                              </button>
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu> */}
                       </th>
                     )}
                   </tr>

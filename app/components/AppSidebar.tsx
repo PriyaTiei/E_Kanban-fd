@@ -59,7 +59,7 @@ function CustomSidebar({ visible = true }: { visible?: boolean }) {
 
   return (
     <aside
-      className={`fixed top-0 left-0 z-40 h-full w-fit bg-gray-800 border-r border-gray-700 flex-col items-center hidden sm:flex md:hidden
+      className={`fixed top-0 left-0 z-50 h-full w-fit bg-gray-800 border-r border-gray-700 flex-col items-center hidden sm:flex md:hidden
         transition-transform duration-300 ease-in-out
         ${visible ? "translate-x-0" : "-translate-x-full"}
       `}

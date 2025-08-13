@@ -33,6 +33,10 @@ export interface KanbanItem {
   prepLocation?: string
   supplyLocation?: string
   acknowledgedAt?: string | Date // ISO timestamp or undefined
+  acknowledgedByLogistics?: boolean
+  fulfilled?: boolean
+  fulfilledAt?: string | Date // ISO timestamp or undefined
+  productId?: number
 }
 
 export interface KanbanLogItem {
@@ -80,6 +84,11 @@ export interface StationsCurrentStatus {
   name: string
   parts: Array<StationPart>
   currentProduct?: ProductEntryLog
+}
+
+export interface KanbanCreateRequest {
+  station: string
+  parts: number[]
 }
 
 export interface KanbanModifyDetails {

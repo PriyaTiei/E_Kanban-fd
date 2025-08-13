@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useAuth } from "../contexts/AuthContext"
+import { useAuth } from "../../contexts/AuthContext"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 import {
@@ -12,8 +12,8 @@ import {
   updateProductEntryLog,
   deleteProductEntryLog,
   refeedProductAtStation,
-} from "../lib/api"
-import type { StationPart, ProductEntryLog, Product } from "../lib/types"
+} from "../../lib/api"
+import type { StationPart, ProductEntryLog, Product } from "../../lib/types"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -35,7 +35,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu"
 import { BreadcrumbEllipsis } from "@/components/ui/breadcrumb"
-import FileUpload from "../components/FileUpload"
+import FileUpload from "../../components/FileUpload"
 
 interface EditableStationPart extends StationPart {
   isEdited?: boolean
@@ -348,9 +348,9 @@ export default function EditStations() {
   return (
     <div className="container mx-auto px-4 py-8 space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-white">Edit Stations</h1>
+        <h1 className="text-xl md:text-2xl font-bold text-white">Edit Stations</h1>
         <div className="flex items-center space-x-4">
-          <button onClick={loadData} className="btn-primary flex items-center">
+          <button onClick={loadData} className="btn-primary flex items-center text-sm">
             <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />
             Refresh
           </button>
@@ -373,7 +373,7 @@ export default function EditStations() {
 
       </div>
 
-      <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-5">
+      <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-4">
         {stations.map((station) => (
           <Card key={station.id} className="w-full bg-gray-800 border-gray-700">
             <CardHeader>
@@ -386,7 +386,7 @@ export default function EditStations() {
               {/* Current Product Section */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between flex-wrap gap-4">
-                  <h3 className="text-lg font-semibold text-gray-300">Current Product</h3>
+                  <h3 className="text-base md:text-lg font-semibold text-gray-300">Current Product</h3>
                   {
                     <Button
                       onClick={() => setRefeed((prev) => ({ ...prev, [station.id]: !prev[station.id] }))}
