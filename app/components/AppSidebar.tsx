@@ -21,7 +21,7 @@ function CustomSidebar({ visible = true }: { visible?: boolean }) {
     { href: "/preparation-list", label: "Preparation List", icon: Package },
     { href: "/supply-list", label: "Supply List", icon: Forklift },
     { href: "/kanban-logs", label: "Kanban Logs", icon: History },
-    ...(user?.role === "admin" ? [{ href: "/edit-stations", label: "Edit Stations", icon: Settings }] : []),
+    ...(user?.role === "admin" ? [{ href: "/settings", label: "Settings", icon: Settings }] : []),
   ]
 
   const handleLogout = async () => {

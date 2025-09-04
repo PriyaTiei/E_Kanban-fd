@@ -60,11 +60,22 @@ export interface KanbanLogItem {
   fulfilledAt?: string | Date // ISO timestamp or undefined
 }
 
+export interface KanbanLogResponse {
+  logs: KanbanLogItem[]
+  totalPages: number
+}
 
 export interface PreparationKanbanResponse {
   kanbans: KanbanItem[]
   processes: number[]
   isFrozenData: boolean
+  totalPages: number
+}
+
+export interface SupplyKanbanResponse {
+  kanbans: KanbanItem[]
+  processes: number[]
+  totalPages: number
 }
 
 export interface Station {

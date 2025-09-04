@@ -13,7 +13,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   const navItems = [
     {
-      name: "Edit Station",
+      name: "Edit Stations",
       href: "/settings/edit-stations",
       icon: Pencil,
     },
@@ -23,7 +23,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     <div className="flex min-h-screen flex-col md:flex-row">
       {/* SIDE APP BAR for Desktop */}
       <aside className="hidden md:flex md:max-w-56 flex-col border-r border-gray-700 bg-gray-800 text-white">
-        <div className="flex-1 py-6">
+        <div className="flex-1 py-8">
           <nav className="space-y-2 sticky top-24">
             {navItems.map((item) => {
               const Icon = item.icon;

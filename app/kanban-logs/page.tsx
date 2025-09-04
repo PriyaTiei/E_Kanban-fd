@@ -6,18 +6,25 @@ import type { KanbanLogItem } from "../lib/types"
 import { History, RefreshCw, Filter, MapPin, Clock, CheckCircle, AlertCircle, Package } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { formatDate } from "../lib/helpers"
+import { formatDate, getPaginationItems } from "../lib/helpers"
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination"
 
 export default function KanbanLogsPage() {
   const [logs, setLogs] = useState<KanbanLogItem[]>([])
+  const [totalPages, setTotalPages] = useState(1)
+  const [currentPage, setCurrentPage] = useState(1)
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<"all" | "pending" | "preparation" | "supply">("all")
+  const limit = 20
 
-  const loadLogs = async () => {
+  const loadLogs = async (page = 1) => {
     setLoading(true)
     try {
-      const data = await fetchKanbanLogs()
+      const result = await fetchKanbanLogs(page, limit)
+      const data = result?.logs || []
+      setTotalPages(result?.totalPages || 1)
       setLogs(data)
+      setCurrentPage(page)
     } catch (error) {
       console.error("Error loading kanban logs:", error)
     } finally {
@@ -26,8 +33,9 @@ export default function KanbanLogsPage() {
   }
 
   useEffect(() => {
-    loadLogs()
-  }, [])
+    loadLogs(currentPage)
+    // eslint-disable-next-line
+  }, [currentPage])
 
   const filteredLogs = logs.filter((log) => {
     if (filter === "all") return true
@@ -103,6 +111,8 @@ export default function KanbanLogsPage() {
     })
   }
 
+  const pages = getPaginationItems(currentPage, totalPages)
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-6 md:mb-8 gap-4 flex-wrap">
@@ -125,7 +135,7 @@ export default function KanbanLogsPage() {
               <option value="supply">Supply</option>
             </select>
           </div>
-          <Button onClick={loadLogs} disabled={loading} className="bg-blue-600 hover:bg-blue-700 text-white text-xs md:text-sm">
+          <Button onClick={() => loadLogs()} disabled={loading} className="bg-blue-600 hover:bg-blue-700 text-white text-xs md:text-sm">
             <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />
             Refresh
           </Button>
@@ -247,6 +257,53 @@ export default function KanbanLogsPage() {
             ))}
         </div>
       )}
+
+      {/* Pagination */}
+      <div className="flex justify-center mt-8">
+        <Pagination>
+          <PaginationContent>
+            {/* <PaginationItem>
+              <PaginationPrevious
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault()
+                  if (currentPage > 1) loadLogs(currentPage - 1)
+                }}
+                className={`${currentPage === 1 ? "invisible" : ""}`}
+              />
+            </PaginationItem> */}
+            {pages.map((page, idx) => (
+              <PaginationItem key={idx}>
+                {page === '...' ? (
+                  <span className="px-2">...</span>
+                ) : (
+                  <PaginationLink
+                    href="#"
+                    className={`${currentPage === idx + 1 ? "bg-blue-600 text-white hover:bg-blue-600" : ""}`}
+                    isActive={currentPage === page}
+                    onClick={(e) => {
+                      e.preventDefault()
+                      loadLogs(page as number)
+                    }}
+                  >
+                    {page}
+                  </PaginationLink>
+                )}
+              </PaginationItem>
+            ))}
+            {/* <PaginationItem>
+              <PaginationNext
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault()
+                  if (currentPage < totalPages) loadLogs(currentPage + 1)
+                }}
+              className={`${currentPage === totalPages ? "invisible" : ""}`}
+              />
+            </PaginationItem> */}
+          </PaginationContent>
+        </Pagination>
+      </div>
     </div>
   )
 }

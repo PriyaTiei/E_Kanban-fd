@@ -1,4 +1,4 @@
-import { ActionResponse, ErrorResponse, KanbanCreateRequest, KanbanItem, KanbanLogItem, KanbanModifyDetails, PreparationKanbanResponse, Product, StationPart, User } from "./types"
+import { ActionResponse, ErrorResponse, KanbanCreateRequest, KanbanItem, KanbanLogItem, KanbanLogResponse, KanbanModifyDetails, PreparationKanbanResponse, Product, StationPart, SupplyKanbanResponse, User } from "./types"
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE!;
 
@@ -105,7 +105,7 @@ export async function fetchProductEntryLogs(): Promise<any[]> {
   }
 }
 
-export async function fetchPreparationKanbans(queryParams?: { process?: number }): Promise<PreparationKanbanResponse | null> {
+export async function fetchPreparationKanbans(queryParams?: { process?: number, page?: number, limit?: number }): Promise<PreparationKanbanResponse | null> {
   try {
     let url = new URL(`${API_BASE}/preparation-sheet/kanbans`)
     if (queryParams) {
@@ -177,42 +177,70 @@ export async function unfreezeProcess(process: number): Promise<ActionResponse> 
   }
 }
 
-export async function fetchPreparationKanbansCount() {
+export async function fetchPreparationKanbansCount(queryParams?: { process?: number}): Promise<{ total: number } | null> {
+  let url = new URL(`${API_BASE}/preparation-sheet/kanbans/count`)
+    if (queryParams) {
+      Object.entries(queryParams).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          url.searchParams.append(key, String(value))
+        }
+      })
+    }
+  
   try {
-    const response = await fetch(`${API_BASE}/preparation-sheet/kanbans/count`, {
+    const response = await fetch(url.toString(), {
       credentials: "include",
     })
     if (!response.ok) throw new Error("Failed to fetch preparation kanbans count")
     return await response.json()
   } catch (error) {
     console.error("Error fetching preparation kanbans count:", error)
-    return []
+    return null;
   }
 }
 
-export async function fetchSupplyKanbans(): Promise<KanbanItem[]> {
+export async function fetchSupplyKanbans(queryParams?: { process?: number, page?: number, limit?: number }): Promise<SupplyKanbanResponse | null> {
+  let url = new URL(`${API_BASE}/supply-sheet/kanbans`)
+  if (queryParams) {
+    Object.entries(queryParams).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        url.searchParams.append(key, String(value))
+      }
+    })
+  }
+
   try {
-    const response = await fetch(`${API_BASE}/supply-sheet/kanbans`, {
+    const response = await fetch(url.toString(), {
       credentials: "include",
     })
     if (!response.ok) throw new Error("Failed to fetch supply kanbans")
     return await response.json()
   } catch (error) {
     console.error("Error fetching supply kanbans:", error)
-    return []
+    return null;
   }
 }
 
-export async function fetchSupplyKanbansCount() {
+export async function fetchSupplyKanbansCount(queryParams?: { process?: number}): Promise<{ total: number } | null> {
+  let url = new URL(`${API_BASE}/supply-sheet/kanbans/count`)
+    if (queryParams) {
+      Object.entries(queryParams).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          url.searchParams.append(key, String(value))
+        }
+      })
+    }
+  console.log("Fetching supply kanbans count with URL:", url.toString());
+  
   try {
-    const response = await fetch(`${API_BASE}/supply-sheet/kanbans/count`, {
+    const response = await fetch(url.toString(), {
       credentials: "include",
     })
     if (!response.ok) throw new Error("Failed to fetch supply kanbans count")
     return await response.json()
   } catch (error) {
     console.error("Error fetching supply kanbans count:", error)
-    return []
+    return null;
   }
 }
 
@@ -407,16 +435,18 @@ export async function fetchUserProfile(): Promise<User | ErrorResponse | null> {
   }
 }
 
-export async function fetchKanbanLogs(): Promise<KanbanLogItem[]> {
+export async function fetchKanbanLogs(currentPage?:number, limit?:number): Promise<KanbanLogResponse | null> {
+  const pageParam = currentPage ? `?page=${currentPage}` : ''
+  const limitParam = limit ? `${currentPage ? '&' : '?'}limit=${limit}` : ''
   try {
-    const response = await fetch(`${API_BASE}/kanban-logs`, {
+    const response = await fetch(`${API_BASE}/kanban-logs${pageParam}${limitParam}`, {
       credentials: "include",
     })
     if (!response.ok) throw new Error("Failed to fetch kanban logs")
     return await response.json()
   } catch (error) {
     console.error("Error fetching kanban logs:", error)
-    return []
+    return null;
   }
 }
 

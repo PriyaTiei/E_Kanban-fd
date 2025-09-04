@@ -36,6 +36,10 @@ import {
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu"
 import { BreadcrumbEllipsis } from "@/components/ui/breadcrumb"
 import FileUpload from "../../components/FileUpload"
+import { cn } from "@/lib/utils"
+import Link from "next/link"
+import { Dropdown } from "react-day-picker"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 
 interface EditableStationPart extends StationPart {
   isEdited?: boolean
@@ -373,13 +377,7 @@ export default function EditStations() {
   }
 
   return (
-    <div className="w-full flex gap-4">
-      {/* Right side bar for navigating between stations and parts */}
-      <aside className="top-0 right-0 min-h-screen md:flex md:max-w-60 flex-col border-l border-gray-700 bg-gray-800 text-white">
-        <div className="flex-1 py-6">
-          Hi There
-        </div>
-      </aside>
+    <div className="w-full flex">
       <div className="container mx-auto px-4 py-8 space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-xl md:text-2xl font-bold text-white">Edit Stations</h1>
@@ -393,7 +391,7 @@ export default function EditStations() {
                 <DropdownMenuTrigger>
                   <BreadcrumbEllipsis />
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="bg-gray-900 border border-gray-700 rounded-md py-3 px-2 flex flex-col gap-2">
+                <DropdownMenuContent className="bg-gray-900 border border-gray-700 rounded-md py-3 px-2 flex flex-col gap-2 z-20">
                   <DropdownMenuItem>
                     <button className="w-full py-1 px-2 hover:bg-slate-800" onClick={() => setFileUploadOpen(true)}>
                       Upload File
@@ -409,7 +407,7 @@ export default function EditStations() {
 
         <div className="w-full flex flex-col gap-4">
           {stations.map((station) => (
-            <Card key={station.id} className="w-full bg-transparent border-0 rounded-t-none border-x border-b border-gray-700">
+            <Card id={`${station.id}`} key={station.id} className="w-full bg-transparent border-0 rounded-t-none border-x border-b border-gray-700">
               <CardHeader className={`sticky top-0 bg-gray-900 border-b ${!showContent[station.id] && "rounded-b"} border-gray-700 z-10 transition-transform duration-300 ease-in-out
                   ${scrollUp ? "top-14 sm:top-0 md:top-16" : "top-0"}
                 `}>
@@ -568,7 +566,7 @@ export default function EditStations() {
                         .map((part) => {
                           const status = getQuantityStatus(part.currentQuantity, part.consumptionPerProduct)
                           return (
-                            <div key={part.id} className="w-full bg-gray-700/50 p-4 rounded-lg space-y-4">
+                            <div id={`${part.id}`} key={part.id} className="w-full bg-gray-700/50 p-4 rounded-lg space-y-4 scroll-mt-20">
                               <div className="flex items-center gap-2 flex-wrap">
                                 {getStatusIcon(status)}
                                 <h4 className="font-medium text-white">Part {part.partIdNo}</h4>
@@ -659,6 +657,50 @@ export default function EditStations() {
           ))}
         </div>
       </div>
+      {/* Right side bar for navigating between stations and parts */}
+      <aside className="hidden top-0 right-0 min-h-screen md:flex md:max-w-36 w-full flex-col border-l border-gray-700 bg-gray-800 text-white">
+        <div className="w-full flex-1 py-8 px-4">
+          <nav className="w-full flex flex-col items-center sticky top-24">
+            <h2 className="self-start text-lg font-semibold mb-4">Stations</h2>
+            {stations.map((details) => {
+              const Name = details.name;
+              return (
+                <Collapsible key={details.name} className="w-full py-2 border-b border-gray-700 last:border-0">
+                  <div className="w-full flex items-center justify-between">
+                    <Link
+                      key={details.name}
+                      href={`#${details.id}`}
+                      className={cn(
+                        "flex-1 text-nowrap text-sm hover:bg-gray-800 transition",
+                        // active && "text-blue-600 font-medium"
+                    )}>
+                      {Name}
+                    </Link>
+                    <CollapsibleTrigger className="text-sm hover:bg-gray-800 transition">
+                      <ChevronDown className="h-4 w-4" />
+                    </CollapsibleTrigger>
+                  </div>
+                  <CollapsibleContent className="flex flex-col">
+                    {details.parts.map((part) => (
+                      <div key={part.id} className="w-full pl-2 pt-1">
+                        <Link 
+                          href={`#${part.id}`} 
+                          className={cn("w-full hover:bg-slate-800 text-xs",
+                            // active && "text-blue-600 font-medium"
+                        )}
+                        onClick={() => setShowContent((prev) => ({ ...prev, [details.id]: true }))}
+                        >
+                          Part {part.partIdNo}
+                        </Link>
+                      </div>
+                    ))}
+                  </CollapsibleContent>
+                </Collapsible>
+              );
+            })}
+          </nav>
+        </div>
+      </aside>
     </div>
   )
 }

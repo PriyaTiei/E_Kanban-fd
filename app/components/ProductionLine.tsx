@@ -124,8 +124,8 @@ export default function ProductionLine() {
       ])
       console.log("Kanbans to prepare:", kanbansToPrepare, "Kanbans to supply:", kanbansToSupply)
 
-      setKanbansToPrepare(kanbansToPrepare.total || 0)
-      setKanbansToSupply(kanbansToSupply.total || 0)
+      setKanbansToPrepare(kanbansToPrepare?.total || 0)
+      setKanbansToSupply(kanbansToSupply?.total || 0)
     } catch (error) {
       console.error("Error loading kanban counts:", error)
     } finally {

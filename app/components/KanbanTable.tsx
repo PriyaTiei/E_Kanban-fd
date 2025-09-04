@@ -27,6 +27,7 @@ import KanbanRequestsForm from "./KanbansRequestForm"
 
 interface KanbanTableProps {
   data: KanbanItem[]
+  totalKanbans: number
   processFilters: number[] | null
   isFrozenData?: boolean
   onUpdate: (updateKanban: KanbanModifyDetails) => Promise<boolean>
@@ -37,6 +38,7 @@ interface KanbanTableProps {
 
 export default function KanbanTable({
   data,
+  totalKanbans,
   processFilters,
   isFrozenData,
   onUpdate,
@@ -163,7 +165,7 @@ export default function KanbanTable({
               {title} {isFrozen && isPreparationSheet && <Snowflake className="inline h-4 w-4 md:h-5 md:w-5 ml-1" />}
             </h2>
             <div className="text-xs md:text-sm text-gray-400 mt-1">
-              Total <span className="text-white">{data.length}</span> {data.length === 1 ? "kanban" : "kanbans"} pending
+              Total <span className="text-white">{totalKanbans}</span> {totalKanbans === 1 ? "kanban" : "kanbans"} pending {selectedProcess && <>for process <span className="text-white">{selectedProcess}</span></>}
             </div>
           </div>
           <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-2">
