@@ -35,7 +35,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                     href={item.href}
                     className={cn(
                         "w-full flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-800 transition",
-                        active && "bg-blue-600 font-medium"
+                        active && "bg-blue-600 font-medium hover:bg-blue-600"
                     )}
                     >
                     <Icon className="h-4 w-4" />
@@ -45,7 +45,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               );
             })}
             <p 
-                className="w-full flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-800 transition active:bg-blue-600 active:font-medium"
+                className="w-full flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-800 transition active:bg-blue-600 active:font-medium cursor-pointer"
                 onClick={() => setFileUploadOpen(true)}
             >
                 <FileUp className="h-4 w-4" />

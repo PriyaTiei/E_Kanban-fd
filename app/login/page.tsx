@@ -12,6 +12,7 @@ import { loginUser } from "../lib/api"
 import { useAuth } from "../contexts/AuthContext"
 import { useToast } from "@/hooks/use-toast"
 import Image from "next/image"
+import { User } from "../lib/types"
 
 export default function LoginPage() {
   const [username, setUsername] = useState("")
@@ -29,6 +30,8 @@ export default function LoginPage() {
       const result = await loginUser(username, password)
 
       if (result && "id" in result) {
+        console.log("User:", result);
+        
         login(result)
         toast({
           title: "Login Successful",

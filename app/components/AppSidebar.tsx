@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import SidebarCollapseButton from "./AppSidebarCollapseBtn"
 import { useSidebar } from "../contexts/SideBarContext"
+import { useEffect } from "react"
 
 function CustomSidebar({ visible = true }: { visible?: boolean }) {
   const pathname = usePathname()
@@ -164,9 +165,14 @@ export default function AppSidebar() {
   const { visible, setVisible, toggle } = useSidebar()
   const { user } = useAuth()
 
-  // If user is not logged in, hide sidebar and do not render anything
+  useEffect(() => {
+    // If user is not logged in, hide sidebar and do not render anything
+    if (!user && visible) {
+      setVisible(false)
+    }
+  }, [user, visible, setVisible])
+
   if (!user) {
-    if (visible) setVisible(false)
     return null
   }
 

@@ -1,10 +1,11 @@
 "use client"
 
+import "../../styles/globals.css"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { Factory, Forklift, Package, User, LogOut, Settings } from "lucide-react"
+import { Factory, Forklift, Package, User, LogOut, Settings, Dot } from "lucide-react"
 import { useAuth } from "../contexts/AuthContext"
-import { logoutUser } from "../lib/api"
+import { changePlant, logoutUser } from "../lib/api"
 import { useToast } from "@/hooks/use-toast"
 import {
   DropdownMenu,
@@ -17,6 +18,7 @@ import {
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
 import { useEffect, useRef, useState } from "react"
+import { User as UserType } from "../lib/types"
 
 export default function Header() {
   const [showHeader, setShowHeader] = useState(true)
@@ -88,6 +90,31 @@ export default function Header() {
     }
   }
 
+  const handlePlantChange = async (plant: string) => {
+    const plantId = plant === "GD" ? 1 : 2 
+    try {
+      const response = await changePlant(plantId);
+      console.log("Plant change response:", response);
+      
+      if (response && (response as UserType).plantId === plantId) {
+        toast({
+          title: "Plant Changed",
+          description: `You have switched to ${plant} plant`,
+        })
+        window.location.reload(); // Refresh to reflect plant change
+      } else {
+        throw new Error("Plant change failed");
+      }
+    } catch (error) {
+      console.error("Plant change error:", error);
+      toast({
+        title: "Error",
+        description: "Failed to change plant",
+        variant: "destructive",
+      })
+    }
+  }
+
   return (
     <header
       className={`sm:hidden md:block bg-gray-800 border-b border-gray-700 sticky top-0 z-50
@@ -139,10 +166,34 @@ export default function Header() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56 bg-gray-800 border-gray-700">
                   <DropdownMenuLabel className="text-gray-300">
-                    <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium">{user.username}</p>
-                      <p className={`text-xs ${getRoleColor(user.role)} capitalize`}>{user.role}</p>
-                      {user.plantName && <p className="text-xs text-gray-400">Plant: {user.plantName}</p>}
+                    <div className="flex space-x-2">
+                      <div className="p-2 border border-gray-700 rounded-lg flex flex-col justify-between text-sm font-medium">
+                        {user.username}                        
+                        <p className={`text-xs ${getRoleColor(user.role)} capitalize`}>{user.role}</p>
+                      </div>
+                      <div className="w-full pt-2 border border-gray-700 rounded-lg flex flex-col judtify-center space-y-2">
+                        <p className="mx-2 inline-block text-sm text-gray-400 font-light text-balance">
+                          {`${user.plantName ? user.plantName : user.plantId === 1 ? "GD" : "TNGA"} Logistics`}
+                        </p>
+                        {user.role !== 'admin' && user.plantName ?
+                          <p className="text-sm text-gray-400">Plant: {user.plantName}</p>
+                          :
+                          <div className="w-full border-t border-gray-700 flex flex-row items-center">
+                            {["GD", "TNGA"].map((plant, index) => (
+                              <button 
+                                key={plant} 
+                                className={`w-full text-xs font-medium px-2 py-1 
+                                  ${index === 0 ? "rounded-es-lg border-r border-gray-700" : "border-l border-gray-700 rounded-ee-lg"}
+                                  ${user.plantId === index + 1 ? "bg-blue-600 text-white hover:bg-blue-700" : "text-gray-300 hover:text-white hover:bg-gray-700"}
+                                  `}
+                                onClick={() => handlePlantChange(plant)}
+                              >
+                                {plant}
+                              </button>
+                            ))}
+                          </div>
+                        }
+                      </div>
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator className="bg-gray-700" />
@@ -150,7 +201,7 @@ export default function Header() {
                     <>
                       <DropdownMenuItem
                         onClick={() => router.push("/settings")}
-                        className="text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer"
+                        className="text-gray-300 dropDownMenuHover hover:text-white cursor-pointer"
                       >
                         <Settings className="mr-2 h-4 w-4" />
                         <span>Settings</span>
@@ -160,7 +211,7 @@ export default function Header() {
                   )}
                   <DropdownMenuItem
                     onClick={handleLogout}
-                    className="text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer"
+                    className="text-gray-300 dropDownMenuHoverDestructive hover:text-white cursor-pointer"
                   >
                     <LogOut className="mr-2 h-4 w-4" />
                     <span>Log out</span>

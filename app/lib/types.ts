@@ -123,3 +123,16 @@ export interface ActionResponse {
   data?: any; 
   error?: string 
 }
+
+export interface FileUploadResponse {
+  success: boolean;
+  message?: string;
+  error?: string; 
+}
+
+export interface QueryParams {
+  process?: number | null
+  search?: string | null
+  page?: number
+  limit?: number
+}

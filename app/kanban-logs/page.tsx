@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { fetchKanbanLogs } from "../lib/api"
 import type { KanbanLogItem } from "../lib/types"
 import { History, RefreshCw, Filter, MapPin, Clock, CheckCircle, AlertCircle, Package } from "lucide-react"
@@ -14,8 +14,34 @@ export default function KanbanLogsPage() {
   const [totalPages, setTotalPages] = useState(1)
   const [currentPage, setCurrentPage] = useState(1)
   const [loading, setLoading] = useState(true)
+  const [scrollUp, setScrollUp] = useState(true)
+  const ticking = useRef(false)
+  const lastScrollY = useRef(0)
   const [filter, setFilter] = useState<"all" | "pending" | "preparation" | "supply">("all")
   const limit = 20
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!ticking.current) {
+        window.requestAnimationFrame(() => {
+          const currentScrollY = window.scrollY
+          if (currentScrollY > lastScrollY.current && currentScrollY > 60) {
+            // Scrolling down
+            setScrollUp(false)
+          } else {
+            // Scrolling up
+            setScrollUp(true)
+          }
+          lastScrollY.current = currentScrollY
+          ticking.current = false
+        })
+        ticking.current = true
+      }
+    }
+
+    window.addEventListener("scroll", handleScroll)
+    return () => window.removeEventListener("scroll", handleScroll)
+  }, [])
 
   const loadLogs = async (page = 1) => {
     setLoading(true)
@@ -161,7 +187,8 @@ export default function KanbanLogsPage() {
             .sort(([a], [b]) => new Date(b).getTime() - new Date(a).getTime())
             .map(([date, dayLogs]) => (
               <div key={date} className="space-y-4">
-                <div className="sticky top-0 md:top-16 bg-gray-900 py-2 z-20">
+                <div className={`sticky top-0 bg-gray-900 py-2 z-20
+                  ${scrollUp ? "top-14 sm:top-0 md:top-16" : "top-0"}`}>
                   <h2 className="md:text-lg font-semibold text-white border-b border-gray-700 pb-2">
                     {formatDateHeader(date)}
                   </h2>

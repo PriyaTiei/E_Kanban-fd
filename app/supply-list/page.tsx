@@ -1,8 +1,8 @@
 "use client"
 import { Suspense } from "react"
 import { useEffect, useState } from "react"
-import { deleteSupplyKanban, fetchSupplyKanbans, fetchSupplyKanbansCount, updateSupplyKanban } from "../lib/api"
-import type { KanbanItem } from "../lib/types"
+import { deleteAllSupplyKanban, deleteSupplyKanban, fetchSupplyKanbans, fetchSupplyKanbansCount, updateAllSupplyKanban, updateSupplyKanban } from "../lib/api"
+import type { KanbanItem, QueryParams } from "../lib/types"
 import { useSearchParams } from "next/navigation"
 import KanbanTable from "../components/KanbanTable"
 import Loading from "../components/loading"
@@ -20,12 +20,18 @@ function SupplyListContent() {
   const limit = 20
 
   const selectedProcess = searchParams.get("process") ? Number.parseInt(searchParams.get("process")!) : undefined
+  const searchedParameter = searchParams.get("search") ? String(searchParams.get("search")!) : null
 
   const fetchData = async (page = 1) => {
     setLoading(true)
     try {
-      const queryParams = selectedProcess ? { process: selectedProcess } : undefined
-      const result = await fetchSupplyKanbans({...queryParams, page, limit})
+      let queryParams: QueryParams = selectedProcess ? { process: selectedProcess } : {page, limit}
+      if (searchedParameter){
+        queryParams = { ...queryParams, search: searchedParameter }
+        if (totalPages < page) page = 1 // Reset to first page on new search
+      }
+      console.log("Fetching with queryParams:", queryParams);
+      const result = await fetchSupplyKanbans(queryParams)
       const countResult = await fetchSupplyKanbansCount(queryParams)
       const kanbans = result?.kanbans || []
       
@@ -45,7 +51,7 @@ function SupplyListContent() {
 
   useEffect(() => {
     fetchData(currentPage)
-  }, [selectedProcess, currentPage])
+  }, [selectedProcess, searchedParameter, currentPage])
 
   if (loading) {
     return (
@@ -62,7 +68,9 @@ function SupplyListContent() {
         totalKanbans={totalKanbans}
         processFilters={processFilters}
         onUpdate={updateSupplyKanban}
+        onUpdateAll={updateAllSupplyKanban}
         onDelete={deleteSupplyKanban}
+        onDeleteAll={deleteAllSupplyKanban}
         title="Supply List"
         onRefresh={fetchData}
       />

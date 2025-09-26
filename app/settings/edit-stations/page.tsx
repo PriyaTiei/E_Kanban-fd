@@ -662,42 +662,44 @@ export default function EditStations() {
         <div className="w-full flex-1 py-8 px-4">
           <nav className="w-full flex flex-col items-center sticky top-24">
             <h2 className="self-start text-lg font-semibold mb-4">Stations</h2>
-            {stations.map((details) => {
-              const Name = details.name;
-              return (
-                <Collapsible key={details.name} className="w-full py-2 border-b border-gray-700 last:border-0">
-                  <div className="w-full flex items-center justify-between">
-                    <Link
-                      key={details.name}
-                      href={`#${details.id}`}
-                      className={cn(
-                        "flex-1 text-nowrap text-sm hover:bg-gray-800 transition",
-                        // active && "text-blue-600 font-medium"
-                    )}>
-                      {Name}
-                    </Link>
-                    <CollapsibleTrigger className="text-sm hover:bg-gray-800 transition">
-                      <ChevronDown className="h-4 w-4" />
-                    </CollapsibleTrigger>
-                  </div>
-                  <CollapsibleContent className="flex flex-col">
-                    {details.parts.map((part) => (
-                      <div key={part.id} className="w-full pl-2 pt-1">
-                        <Link 
-                          href={`#${part.id}`} 
-                          className={cn("w-full hover:bg-slate-800 text-xs",
-                            // active && "text-blue-600 font-medium"
-                        )}
-                        onClick={() => setShowContent((prev) => ({ ...prev, [details.id]: true }))}
-                        >
-                          Part {part.partIdNo}
-                        </Link>
-                      </div>
-                    ))}
-                  </CollapsibleContent>
-                </Collapsible>
-              );
-            })}
+            <div className="w-full space-y-2 overflow-y-auto max-h-[70vh]">
+              {stations.map((details) => {
+                const Name = details.name;
+                return (
+                  <Collapsible key={details.name} className="w-full py-2 border-b border-gray-700 last:border-0">
+                    <div className="w-full flex items-center justify-between">
+                      <Link
+                        key={details.name}
+                        href={`#${details.id}`}
+                        className={cn(
+                          "flex-1 text-nowrap text-sm hover:bg-gray-800 transition",
+                          // active && "text-blue-600 font-medium"
+                      )}>
+                        {Name}
+                      </Link>
+                      <CollapsibleTrigger className="text-sm hover:bg-gray-800 transition">
+                        <ChevronDown className="h-4 w-4" />
+                      </CollapsibleTrigger>
+                    </div>
+                    <CollapsibleContent className="flex flex-col">
+                      {details.parts.map((part) => (
+                        <div key={part.id} className="w-full pl-2 pt-1">
+                          <Link 
+                            href={`#${part.id}`} 
+                            className={cn("w-full hover:bg-slate-800 text-xs",
+                              // active && "text-blue-600 font-medium"
+                          )}
+                          onClick={() => setShowContent((prev) => ({ ...prev, [details.id]: true }))}
+                          >
+                            Part {part.partIdNo}
+                          </Link>
+                        </div>
+                      ))}
+                    </CollapsibleContent>
+                  </Collapsible>
+                );
+              })}
+            </div>
           </nav>
         </div>
       </aside>

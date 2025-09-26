@@ -1,5 +1,9 @@
 /** @type {import('next').NextConfig} */
+
+const isDev = process.env.NODE_ENV === 'development';
+
 const nextConfig = {
+  distDir: isDev ? '.next_dev' : '.next',
   async headers() {
     return [
       {

@@ -1,4 +1,5 @@
-import { ActionResponse, ErrorResponse, KanbanCreateRequest, KanbanItem, KanbanLogItem, KanbanLogResponse, KanbanModifyDetails, PreparationKanbanResponse, Product, StationPart, SupplyKanbanResponse, User } from "./types"
+import { stringify } from "querystring";
+import { ActionResponse, ErrorResponse, FileUploadResponse, KanbanCreateRequest, KanbanItem, KanbanLogItem, KanbanLogResponse, KanbanModifyDetails, PreparationKanbanResponse, Product, QueryParams, StationPart, SupplyKanbanResponse, User } from "./types"
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE!;
 
@@ -105,7 +106,7 @@ export async function fetchProductEntryLogs(): Promise<any[]> {
   }
 }
 
-export async function fetchPreparationKanbans(queryParams?: { process?: number, page?: number, limit?: number }): Promise<PreparationKanbanResponse | null> {
+export async function fetchPreparationKanbans(queryParams?: QueryParams): Promise<PreparationKanbanResponse | null> {
   try {
     let url = new URL(`${API_BASE}/preparation-sheet/kanbans`)
     if (queryParams) {
@@ -115,6 +116,9 @@ export async function fetchPreparationKanbans(queryParams?: { process?: number, 
         }
       })
     }
+
+    console.log("Fetching preparation kanbans with URL:", url.toString());
+    
 
     const response = await fetch(url.toString(), {
       credentials: "include",
@@ -177,7 +181,7 @@ export async function unfreezeProcess(process: number): Promise<ActionResponse> 
   }
 }
 
-export async function fetchPreparationKanbansCount(queryParams?: { process?: number}): Promise<{ total: number } | null> {
+export async function fetchPreparationKanbansCount(queryParams?: QueryParams): Promise<{ total: number } | null> {
   let url = new URL(`${API_BASE}/preparation-sheet/kanbans/count`)
     if (queryParams) {
       Object.entries(queryParams).forEach(([key, value]) => {
@@ -199,7 +203,7 @@ export async function fetchPreparationKanbansCount(queryParams?: { process?: num
   }
 }
 
-export async function fetchSupplyKanbans(queryParams?: { process?: number, page?: number, limit?: number }): Promise<SupplyKanbanResponse | null> {
+export async function fetchSupplyKanbans(queryParams?: QueryParams): Promise<SupplyKanbanResponse | null> {
   let url = new URL(`${API_BASE}/supply-sheet/kanbans`)
   if (queryParams) {
     Object.entries(queryParams).forEach(([key, value]) => {
@@ -221,7 +225,7 @@ export async function fetchSupplyKanbans(queryParams?: { process?: number, page?
   }
 }
 
-export async function fetchSupplyKanbansCount(queryParams?: { process?: number}): Promise<{ total: number } | null> {
+export async function fetchSupplyKanbansCount(queryParams?: QueryParams): Promise<{ total: number } | null> {
   let url = new URL(`${API_BASE}/supply-sheet/kanbans/count`)
     if (queryParams) {
       Object.entries(queryParams).forEach(([key, value]) => {
@@ -282,6 +286,24 @@ export async function updatePreparationKanban(updateKanban:KanbanModifyDetails):
   }
 }
 
+export async function updateAllPreparationKanban(process?: number | null): Promise<boolean> {
+  try {
+    console.log("Updating all preparation kanbans");
+    
+    const response = await fetch(`${API_BASE}/preparation-sheet/kanban/all${process ? `?process=${process}` : ""}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+    })
+    console.log("Response:", response.json);
+    
+    return response.ok
+  } catch (error) {
+    console.error("Error updating preparation kanbans:", error)
+    return false
+  }
+}
+
 export async function deletePreparationKanban(deleteKanban: KanbanModifyDetails): Promise<boolean> {
   try {
     const response = await fetch(`${API_BASE}/preparation-sheet/kanban`, {
@@ -293,6 +315,22 @@ export async function deletePreparationKanban(deleteKanban: KanbanModifyDetails)
     return response.ok;
   } catch (error) {
     console.error("Error deleting preparation kanban:", error);
+    return false;
+  }
+}
+
+export async function deleteAllPreparationKanban(process?: number | null): Promise<boolean> {
+  console.log("Deleting all preparation kanbans");
+  
+  try {
+    const response = await fetch(`${API_BASE}/preparation-sheet/kanban${process ? `?process=${process}` : ""}`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+    });
+    return response.ok;
+  } catch (error) {
+    console.error("Error deleting preparation kanbans:", error);
     return false;
   }
 }
@@ -312,12 +350,40 @@ export async function updateSupplyKanban(updateKanban:KanbanModifyDetails): Prom
   }
 }
 
+export async function updateAllSupplyKanban(process?: number | null): Promise<boolean> {
+  try {
+    const response = await fetch(`${API_BASE}/supply-sheet/kanban/all${process ? `?process=${process}` : ""}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+    })
+    return response.ok
+  } catch (error) {
+    console.error("Error updating supply kanbans:", error)
+    return false
+  }
+}
+
 export async function deleteSupplyKanban(deleteKanban: KanbanModifyDetails): Promise<boolean> {
   try {
     const response = await fetch(`${API_BASE}/supply-sheet/kanban`, {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(deleteKanban),
+      credentials: "include",
+    });
+    return response.ok;
+  } catch (error) {
+    console.error("Error deleting supply kanban:", error);
+    return false
+  }
+}
+
+export async function deleteAllSupplyKanban(process?: number | null): Promise<boolean> {
+  try {
+    const response = await fetch(`${API_BASE}/supply-sheet/kanban/all${process ? `?process=${process}` : ""}`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
       credentials: "include",
     });
     return response.ok;
@@ -418,6 +484,23 @@ export async function logoutUser(): Promise<void> {
   }
 }
 
+export async function changePlant(plantId: number): Promise<User | ErrorResponse | null> {
+  try {
+    const response = await fetch(`${API_BASE}/auth/change-plant`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ plantId }),
+    })
+    
+    if (!response.ok) throw new Error("Change plant failed")
+    return await response.json()
+  } catch (error) {
+    console.error("Error changing plant:", error)
+    return null
+  }
+}
+
 export async function fetchUserProfile(): Promise<User | ErrorResponse | null> {
   try {
     const response = await fetch(`${API_BASE}/auth/me`, {
@@ -473,8 +556,8 @@ export const uploadFile = async (file:File, onProgress: (progress: number)=> voi
         body: formData,
         credentials: "include",
       });
-
-      if (!response.ok) throw new Error(`Chunk ${chunkIndex} failed.`);
+      const data: FileUploadResponse = await response.json();
+      if (!response.ok) throw new Error(`${data.error}`);
       const percent = Math.round(((chunkIndex + 1) / totalChunks) * 100);
       onProgress(percent);
 

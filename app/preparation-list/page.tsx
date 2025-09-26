@@ -1,8 +1,8 @@
 "use client"
 import { useSearchParams } from "next/navigation"
 import { useEffect, useState } from "react"
-import { deletePreparationKanban, fetchPreparationKanbans, fetchPreparationKanbansCount, updatePreparationKanban } from "../lib/api"
-import type { KanbanItem } from "../lib/types"
+import { deleteAllPreparationKanban, deletePreparationKanban, fetchPreparationKanbans, fetchPreparationKanbansCount, updateAllPreparationKanban, updatePreparationKanban } from "../lib/api"
+import type { KanbanItem, QueryParams } from "../lib/types"
 import { Suspense } from "react"
 import KanbanTable from "../components/KanbanTable"
 import Loading from "../components/loading"
@@ -22,15 +22,19 @@ function PreparationListContent() {
   const limit = 20
 
   const selectedProcess = searchParams.get("process") ? Number.parseInt(searchParams.get("process")!) : null
+  const searchedParameter = searchParams.get("search") ? String(searchParams.get("search")!) : null
 
   const fetchData = async (page = 1) => {
     setLoading(true)
     try {
-      const queryParams = selectedProcess ? { process: selectedProcess } : undefined
-      const result = await fetchPreparationKanbans({...queryParams, page, limit})
+      let queryParams: QueryParams = selectedProcess ? { process: selectedProcess } : {page, limit}
+      if (searchedParameter){
+        queryParams = { ...queryParams, search: searchedParameter }
+        if (totalPages < page) page = 1 // Reset to first page on new search
+      }
+      const result = await fetchPreparationKanbans(queryParams)
       const countResult = await fetchPreparationKanbansCount(queryParams)
       console.log("Fetched countResult:", countResult || "No countResult");
-      
       
       setData(result?.kanbans || []);
       setIsFrozenData(result?.isFrozenData || false)
@@ -48,7 +52,7 @@ function PreparationListContent() {
 
   useEffect(() => {
     fetchData(currentPage)
-  }, [selectedProcess, currentPage])
+  }, [selectedProcess, searchedParameter, currentPage])
 
   if (loading) {
     return (
@@ -66,7 +70,9 @@ function PreparationListContent() {
         processFilters={processFilters}
         isFrozenData={isFrozenData}
         onUpdate={updatePreparationKanban}
+        onUpdateAll={updateAllPreparationKanban}
         onDelete={deletePreparationKanban}
+        onDeleteAll={deleteAllPreparationKanban}
         title="Preparation List"
         onRefresh={fetchData}
       />

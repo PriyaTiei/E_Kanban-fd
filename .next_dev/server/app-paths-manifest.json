@@ -1,0 +1,6 @@
+{
+  "/supply-list/page": "app/supply-list/page.js",
+  "/login/page": "app/login/page.js",
+  "/preparation-list/page": "app/preparation-list/page.js",
+  "/page": "app/page.js"
+}

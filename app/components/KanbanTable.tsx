@@ -24,14 +24,18 @@ import KanbanCard from "./KanbanCard"
 import { Breadcrumb, BreadcrumbEllipsis, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu"
 import KanbanRequestsForm from "./KanbansRequestForm"
+import SearchBar from "./SearchBar"
 
 interface KanbanTableProps {
   data: KanbanItem[]
   totalKanbans: number
   processFilters: number[] | null
   isFrozenData?: boolean
+  // onSearch: (value: string) => void
   onUpdate: (updateKanban: KanbanModifyDetails) => Promise<boolean>
+  onUpdateAll: (process: number | undefined | null) => Promise<boolean>
   onDelete: (deleteKanban: KanbanModifyDetails) => Promise<boolean>
+  onDeleteAll: (process: number | undefined | null) => Promise<boolean>
   title: string
   onRefresh?: () => void
 }
@@ -41,8 +45,11 @@ export default function KanbanTable({
   totalKanbans,
   processFilters,
   isFrozenData,
+  // onSearch,
   onUpdate,
+  onUpdateAll,
   onDelete,
+  onDeleteAll,
   title,
   onRefresh,
 }: KanbanTableProps) {
@@ -55,6 +62,7 @@ export default function KanbanTable({
   const router = useRouter()
 
   const selectedProcess = searchParams.get("process") ? Number.parseInt(searchParams.get("process")!) : null
+  const searchedParameter = searchParams.get("search") ? String(searchParams.get("search")!) : null
   const isPreparationSheet = title === "Preparation List"
 
   // Check if current process is frozen (from data)
@@ -69,6 +77,17 @@ export default function KanbanTable({
       params.delete("process")
     }
     router.push(`?${params.toString()}`, { scroll: false })
+  }
+
+  const handleSearchFilter = (search: string | null) => {
+    const params = new URLSearchParams(searchParams.toString())
+    if (search) {
+      console.log(`Searching for: ${search}`)
+      params.set("search", search.toString())
+    } else {
+      params.delete("search")
+    }
+    router.push(`?${params.toString()}`, { scroll: true })
   }
 
   const handleFreezeToggle = async () => {
@@ -147,6 +166,34 @@ export default function KanbanTable({
     }
   }
 
+  const handleModifyAllAction = async (action: "update" | "delete") => {
+    console.log(`Handling action: ${action} for all kanbans ${selectedProcess && `in process ${selectedProcess}`}`)
+
+    try {
+      const success = action === "update" ? await onUpdateAll(selectedProcess) : await onDeleteAll(selectedProcess)
+      if (success) {
+        toast({
+          title: action === "update" ? "Kanban Updated" : "Kanban Deleted",
+          description: `Kanban item has been successfully ${action === "update" ? "marked as done" : "rejected"}.`,
+        })
+        onRefresh?.()
+      } else {
+        toast({
+          title: "Action Failed",
+          description: `Failed to ${action} kanban item.`,
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      console.error(`Error ${action}ing kanban:`, error)
+      toast({
+        title: "Error",
+        description: `An error occurred while ${action}ing the kanban item.`,
+        variant: "destructive",
+      })
+    }
+  }
+
   const columns: Partial<keyof KanbanItem>[] = data && data.length !== 0 ? Object.keys(data[0]).filter((key) => {
     const commonFilters = [
       "id",
@@ -179,7 +226,7 @@ export default function KanbanTable({
         </div>
 
         {/* Process Filter Buttons */}
-        {processFilters && processFilters.length > 0 && (
+        {(
           <div>
             <div className="text-xs md:text-sm text-gray-400 mb-2">Select Process</div>
             <div className="flex flex-row items-center justify-between gap-4 flex-wrap">
@@ -192,11 +239,11 @@ export default function KanbanTable({
                 >
                   All
                 </button>
-                {processFilters.map((process) => (
+                {processFilters && processFilters.map((process) => (
                   <button
                     key={process}
                     onClick={() => handleProcessFilter(process)}
-                    className={`px-3 py-1 font-medium text-xs md:text-sm transition-colors rounded ${
+                    className={`h-8 px-3 py-1 font-medium text-xs md:text-sm transition-colors rounded ${
                       selectedProcess === process
                         ? "bg-blue-600 text-white"
                         : "bg-gray-700 text-gray-300 hover:bg-gray-600"
@@ -206,18 +253,18 @@ export default function KanbanTable({
                   </button>
                 ))}
               </div>
-              <div className="flex items-center gap-2">
+              <div className="self-end flex items-center gap-2 flex-wrap">
                 {isPreparationSheet && selectedProcess && (
                   <Button
                     onClick={handleFreezeToggle}
                     disabled={freezeLoading}
                     size="sm"
-                    className={`w-fit ${
+                    className={`w-fit h-8 ${
                       isFrozen
                         ? "bg-orange-600 hover:bg-orange-700 text-white"
                         : "bg-blue-600 hover:bg-blue-700 text-white"
-                    }`}
-                  >
+                      }`}
+                      >
                     {freezeLoading ? (
                       <Loader2 className="h-4 w-4 animate-spin mr-2" />
                     ) : isFrozen ? (
@@ -228,6 +275,7 @@ export default function KanbanTable({
                     <span>{isFrozen ? "Unfreeze" : "Freeze"} List</span>
                   </Button>
                 )}
+                <SearchBar onSearch={handleSearchFilter} defaultValue={searchedParameter || ""} className="w-48 sm:w-64" />
                 <div>
                   <DropdownMenu>
                     <DropdownMenuTrigger>
@@ -246,6 +294,13 @@ export default function KanbanTable({
                       }
                       <DropdownMenuItem>
                         <button className="w-full px-2 py-1 rounded flex items-center" onClick={() => handleAction(data.map(item => item.id), "update")}>
+                          <CircleCheckBig className="h-6 w-6 p-[0.125rem] mr-2 bg-green-600 text-black rounded-full" />
+                          Mark current page as done
+                        </button>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator className="h-[1px] bg-gray-700" />
+                      <DropdownMenuItem>
+                        <button className="w-full px-2 py-1 rounded flex items-center" onClick={() => handleModifyAllAction( "update")}>
                           <CircleCheckBig className="h-6 w-6 p-[0.125rem] mr-2 bg-green-600 text-black rounded-full" />
                           Mark all as done
                         </button>

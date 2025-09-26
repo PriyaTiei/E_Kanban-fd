@@ -3,10 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "dev": "next dev -H 10.82.126.73 -p 3061", 
     "build": "next build",
-    "dev": "next dev --port 3061",
-    "lint": "next lint",
-    "start": "next start --port 3059"
+    "start": "next start --port 3059",
+    "lint": "next lint"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
