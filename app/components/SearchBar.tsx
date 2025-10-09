@@ -16,7 +16,7 @@ export default function SearchBar({
   placeholder = "Search...",
   defaultValue = "",
   onSearch,
-  debounceMs = 1000,
+  debounceMs = 4000,
   className = "",
 }: SearchBarProps) {
   const [value, setValue] = useState(defaultValue)

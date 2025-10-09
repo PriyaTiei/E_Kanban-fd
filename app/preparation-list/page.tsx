@@ -8,39 +8,38 @@ import KanbanTable from "../components/KanbanTable"
 import Loading from "../components/loading"
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination"
 import { getPaginationItems } from "../lib/helpers"
-import { ChevronLeft, ChevronRight } from "lucide-react"
 
 function PreparationListContent() {
   const [data, setData] = useState<KanbanItem[]>([])
   const [totalKanbans, setTotalKanbans] = useState(0)
   const [totalPages, setTotalPages] = useState(1)
   const [currentPage, setCurrentPage] = useState(1)
-  const [processFilters, setProcessFilters] = useState<number[] | null>(null)
+  const [processFilters, setProcessFilters] = useState<string[] | null>(null)
   const [isFrozenData, setIsFrozenData] = useState(false)
   const [loading, setLoading] = useState(true)
   const searchParams = useSearchParams()
   const limit = 20
 
-  const selectedProcess = searchParams.get("process") ? Number.parseInt(searchParams.get("process")!) : null
+  const selectedProcess = searchParams.get("process") ? searchParams.get("process") : null
   const searchedParameter = searchParams.get("search") ? String(searchParams.get("search")!) : null
 
   const fetchData = async (page = 1) => {
     setLoading(true)
     try {
-      let queryParams: QueryParams = selectedProcess ? { process: selectedProcess } : {page, limit}
+      let queryParams: QueryParams = selectedProcess ? { process: selectedProcess, page, limit } : {page, limit}
+      console.log(`querying for selected process: ${selectedProcess}`);
+      
       if (searchedParameter){
         queryParams = { ...queryParams, search: searchedParameter }
         if (totalPages < page) page = 1 // Reset to first page on new search
       }
       const result = await fetchPreparationKanbans(queryParams)
       const countResult = await fetchPreparationKanbansCount(queryParams)
-      console.log("Fetched countResult:", countResult || "No countResult");
       
       setData(result?.kanbans || []);
       setIsFrozenData(result?.isFrozenData || false)
       setTotalKanbans(countResult?.total || 0)
       setProcessFilters(result?.processes || null)
-      console.log("Fetched result:", result || "No result");     
       setCurrentPage(page)
       setTotalPages(result?.totalPages || 1)
     } catch (error) {

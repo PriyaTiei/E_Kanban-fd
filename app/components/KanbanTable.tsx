@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Check, X, Loader2, History, Snowflake, Play, CircleCheck, CircleCheckBig, CircleX } from "lucide-react"
 import Link from "next/link"
 import type { KanbanItem, KanbanModifyDetails } from "../lib/types"
@@ -29,13 +29,13 @@ import SearchBar from "./SearchBar"
 interface KanbanTableProps {
   data: KanbanItem[]
   totalKanbans: number
-  processFilters: number[] | null
+  processFilters: string[] | null
   isFrozenData?: boolean
   // onSearch: (value: string) => void
   onUpdate: (updateKanban: KanbanModifyDetails) => Promise<boolean>
-  onUpdateAll: (process: number | undefined | null) => Promise<boolean>
+  onUpdateAll: (process: string | undefined | null) => Promise<boolean>
   onDelete: (deleteKanban: KanbanModifyDetails) => Promise<boolean>
-  onDeleteAll: (process: number | undefined | null) => Promise<boolean>
+  onDeleteAll: (process: string | undefined | null) => Promise<boolean>
   title: string
   onRefresh?: () => void
 }
@@ -61,20 +61,28 @@ export default function KanbanTable({
   const searchParams = useSearchParams()
   const router = useRouter()
 
-  const selectedProcess = searchParams.get("process") ? Number.parseInt(searchParams.get("process")!) : null
+  const paramProcess = searchParams.get("process") ? searchParams.get("process") : null
+  const [selectedProcess, setSelectedProcess] = useState<string | null>(paramProcess)
   const searchedParameter = searchParams.get("search") ? String(searchParams.get("search")!) : null
   const isPreparationSheet = title === "Preparation List"
 
   // Check if current process is frozen (from data)
   const isFrozen = selectedProcess ? isFrozenData === true : false
 
-  const handleProcessFilter = (process: number | null) => {
+  useEffect(() => {
+    console.log(`Selected process changed to: ${selectedProcess}`);
+    
+  },[selectedProcess])
+
+  const handleProcessFilter = (process: string | null) => {
     const params = new URLSearchParams(searchParams.toString())
     if (process) {
-      console.log(`Setting process filter to: ${process}`)
+      console.log(`Setting process filter in params to: ${process}`)
       params.set("process", process.toString())
+      setSelectedProcess(process)
     } else {
       params.delete("process")
+      setSelectedProcess(null)
     }
     router.push(`?${params.toString()}`, { scroll: false })
   }
@@ -331,7 +339,7 @@ export default function KanbanTable({
             <div className="grid gap-4">
               {data.map((item, index) => (
                 <KanbanCard
-                  key={item.id || index}
+                  key={`${item.id || index}-card`}
                   item={item}
                   index={index}
                   handleAction={handleAction}

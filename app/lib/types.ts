@@ -67,14 +67,14 @@ export interface KanbanLogResponse {
 
 export interface PreparationKanbanResponse {
   kanbans: KanbanItem[]
-  processes: number[]
+  processes: string[]
   isFrozenData: boolean
   totalPages: number
 }
 
 export interface SupplyKanbanResponse {
   kanbans: KanbanItem[]
-  processes: number[]
+  processes: string[]
   totalPages: number
 }
 
@@ -131,7 +131,7 @@ export interface FileUploadResponse {
 }
 
 export interface QueryParams {
-  process?: number | null
+  process?: string | null
   search?: string | null
   page?: number
   limit?: number

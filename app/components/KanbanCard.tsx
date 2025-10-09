@@ -36,7 +36,7 @@ export default function KanbanCard({ item, index, handleAction, showActions, isF
   const { toast } = useToast()
 
   return (
-    <Card className={`bg-gray-800 ${isFrozen && isPreparationSheet ? 'border-blue-400/70' : 'border-gray-700'} transition-colors`}>
+    <Card key={index} className={`bg-gray-800 ${isFrozen && isPreparationSheet ? 'border-blue-400/70' : 'border-gray-700'} transition-colors`}>
       <CardContent className="p-0">
         <div className="flex justify-between gap-2">
           {/* Header with index and key info */}

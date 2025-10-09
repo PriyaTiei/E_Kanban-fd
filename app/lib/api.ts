@@ -119,7 +119,6 @@ export async function fetchPreparationKanbans(queryParams?: QueryParams): Promis
 
     console.log("Fetching preparation kanbans with URL:", url.toString());
     
-
     const response = await fetch(url.toString(), {
       credentials: "include",
     })
@@ -131,7 +130,7 @@ export async function fetchPreparationKanbans(queryParams?: QueryParams): Promis
   }
 }
 
-export async function freezeProcess(process: number): Promise<ActionResponse> {
+export async function freezeProcess(process: string): Promise<ActionResponse> {
   try {
     const response = await fetch(`${API_BASE}/preparation-sheet/kanbans/freeze`, {
       method: "POST",
@@ -156,7 +155,7 @@ export async function freezeProcess(process: number): Promise<ActionResponse> {
   }
 }
 
-export async function unfreezeProcess(process: number): Promise<ActionResponse> {
+export async function unfreezeProcess(process: string): Promise<ActionResponse> {
   try {
     const response = await fetch(`${API_BASE}/preparation-sheet/kanbans/unfreeze`, {
       method: "POST",
@@ -286,7 +285,7 @@ export async function updatePreparationKanban(updateKanban:KanbanModifyDetails):
   }
 }
 
-export async function updateAllPreparationKanban(process?: number | null): Promise<boolean> {
+export async function updateAllPreparationKanban(process?: string | null): Promise<boolean> {
   try {
     console.log("Updating all preparation kanbans");
     
@@ -319,7 +318,7 @@ export async function deletePreparationKanban(deleteKanban: KanbanModifyDetails)
   }
 }
 
-export async function deleteAllPreparationKanban(process?: number | null): Promise<boolean> {
+export async function deleteAllPreparationKanban(process?: string | null): Promise<boolean> {
   console.log("Deleting all preparation kanbans");
   
   try {
@@ -350,7 +349,7 @@ export async function updateSupplyKanban(updateKanban:KanbanModifyDetails): Prom
   }
 }
 
-export async function updateAllSupplyKanban(process?: number | null): Promise<boolean> {
+export async function updateAllSupplyKanban(process?: string | null): Promise<boolean> {
   try {
     const response = await fetch(`${API_BASE}/supply-sheet/kanban/all${process ? `?process=${process}` : ""}`, {
       method: "PUT",
@@ -379,7 +378,7 @@ export async function deleteSupplyKanban(deleteKanban: KanbanModifyDetails): Pro
   }
 }
 
-export async function deleteAllSupplyKanban(process?: number | null): Promise<boolean> {
+export async function deleteAllSupplyKanban(process?: string | null): Promise<boolean> {
   try {
     const response = await fetch(`${API_BASE}/supply-sheet/kanban/all${process ? `?process=${process}` : ""}`, {
       method: "DELETE",

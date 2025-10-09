@@ -14,18 +14,18 @@ function SupplyListContent() {
   const [totalKanbans, setTotalKanbans] = useState(0)
   const [totalPages, setTotalPages] = useState(1)
   const [currentPage, setCurrentPage] = useState(1)
-  const [processFilters, setProcessFilters] = useState<number[] | null>(null)
+  const [processFilters, setProcessFilters] = useState<string[] | null>(null)
   const [loading, setLoading] = useState(true)
   const searchParams = useSearchParams()
   const limit = 20
 
-  const selectedProcess = searchParams.get("process") ? Number.parseInt(searchParams.get("process")!) : undefined
+  const selectedProcess = searchParams.get("process") ? searchParams.get("process") : undefined
   const searchedParameter = searchParams.get("search") ? String(searchParams.get("search")!) : null
 
   const fetchData = async (page = 1) => {
     setLoading(true)
     try {
-      let queryParams: QueryParams = selectedProcess ? { process: selectedProcess } : {page, limit}
+      let queryParams: QueryParams = selectedProcess ? { process: selectedProcess, page, limit } : {page, limit}
       if (searchedParameter){
         queryParams = { ...queryParams, search: searchedParameter }
         if (totalPages < page) page = 1 // Reset to first page on new search
