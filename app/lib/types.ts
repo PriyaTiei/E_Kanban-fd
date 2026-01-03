@@ -3,7 +3,7 @@ export interface StationPart {
   stationId: number
   stationName: string
   partId: number
-  partIdNo: number
+  partIdNo: string
   partName: string
   productId?: number
   productName?: string 
@@ -12,6 +12,9 @@ export interface StationPart {
   consumptionPerProduct: number
   binQuantity: number
   currentQuantity: number
+  process: string
+  prepLocation: string
+  supplyLocation: string
   updatedAt: string
 }
 
@@ -69,18 +72,21 @@ export interface PreparationKanbanResponse {
   kanbans: KanbanItem[]
   processes: string[]
   isFrozenData: boolean
+  total: number
   totalPages: number
 }
 
 export interface SupplyKanbanResponse {
   kanbans: KanbanItem[]
   processes: string[]
+  total: number
   totalPages: number
 }
 
 export interface Station {
   id: number
   name: string
+  sequenceNo: number
   parts: StationPart[]
   currentProduct?: ProductEntryLog
 }
@@ -98,8 +104,12 @@ export interface StationsCurrentStatus {
 }
 
 export interface KanbanCreateRequest {
-  station: string
-  parts: number[]
+  stationPartIds?: string[]
+  rankPartIds?: string[]
+  // station: string
+  // part: string
+  // process: string
+  // supplyLocation: string
 }
 
 export interface KanbanModifyDetails {
@@ -135,4 +145,9 @@ export interface QueryParams {
   search?: string | null
   page?: number
   limit?: number
+}
+
+export interface RankPart{
+  id: number | null;
+  partId: string | null;
 }

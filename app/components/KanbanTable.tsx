@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Check, X, Loader2, History, Snowflake, Play, CircleCheck, CircleCheckBig, CircleX } from "lucide-react"
+import { Check, X, Loader2, History, Snowflake, Play, CircleCheck, CircleCheckBig, CircleX, KanbanSquare } from "lucide-react"
 import Link from "next/link"
 import type { KanbanItem, KanbanModifyDetails } from "../lib/types"
 import { useToast } from "@/hooks/use-toast"
@@ -237,7 +237,7 @@ export default function KanbanTable({
         {(
           <div>
             <div className="text-xs md:text-sm text-gray-400 mb-2">Select Process</div>
-            <div className="flex flex-row items-center justify-between gap-4 flex-wrap">
+            <div className="flex flex-row items-center justify-between gap-3 flex-wrap">
               <div className="flex flex-wrap gap-2">
                 <button
                   onClick={() => handleProcessFilter(null)}
@@ -262,7 +262,7 @@ export default function KanbanTable({
                 ))}
               </div>
               <div className="self-end flex items-center gap-2 flex-wrap">
-                {isPreparationSheet && selectedProcess && (
+                {isPreparationSheet && selectedProcess && selectedProcess !== 'rank parts' && (
                   <Button
                     onClick={handleFreezeToggle}
                     disabled={freezeLoading}
@@ -283,7 +283,7 @@ export default function KanbanTable({
                     <span>{isFrozen ? "Unfreeze" : "Freeze"} List</span>
                   </Button>
                 )}
-                <SearchBar onSearch={handleSearchFilter} defaultValue={searchedParameter || ""} className="w-48 sm:w-64" />
+                <SearchBar onSearch={handleSearchFilter} defaultValue={searchedParameter || ""} className="max-w-48" />
                 <div>
                   <DropdownMenu>
                     <DropdownMenuTrigger>
@@ -293,7 +293,8 @@ export default function KanbanTable({
                       { user?.role === "admin" && title === "Preparation List" &&
                         <>
                           <DropdownMenuItem>
-                            <button className="w-full px-2 py-1 rounded" onClick={() => setRequestFormOpen(true)}>
+                            <button className="w-full px-2 py-1 rounded flex items-center" onClick={() => setRequestFormOpen(true)}>
+                              <KanbanSquare className="h-6 w-6 p-[0.125rem] mr-2 bg-blue-600 text-black rounded" />
                               Raise a Kanban Request
                             </button>
                           </DropdownMenuItem>

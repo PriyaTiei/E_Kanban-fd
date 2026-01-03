@@ -1,5 +1,5 @@
 import { stringify } from "querystring";
-import { ActionResponse, ErrorResponse, FileUploadResponse, KanbanCreateRequest, KanbanItem, KanbanLogItem, KanbanLogResponse, KanbanModifyDetails, PreparationKanbanResponse, Product, QueryParams, StationPart, SupplyKanbanResponse, User } from "./types"
+import { ActionResponse, ErrorResponse, FileUploadResponse, KanbanCreateRequest, KanbanItem, KanbanLogItem, KanbanLogResponse, KanbanModifyDetails, PreparationKanbanResponse, Product, QueryParams, RankPart, StationPart, SupplyKanbanResponse, User } from "./types"
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE!;
 
@@ -247,7 +247,20 @@ export async function fetchSupplyKanbansCount(queryParams?: QueryParams): Promis
   }
 }
 
-export async function createPreparationKanban(newKanban:KanbanCreateRequest[]): Promise<boolean> {
+export async function fetchRankParts(): Promise<RankPart[]> {
+  try {
+    const response = await fetch(`${API_BASE}/parts/rank-parts`, {
+      credentials: "include",
+    })
+    if (!response.ok) throw new Error("Failed to fetch rank parts")
+    return await response.json()
+  } catch (error) {
+    console.error("Error fetching rank parts:", error)
+    return []
+  }
+}
+
+export async function createPreparationKanban(newKanban:KanbanCreateRequest): Promise<boolean> {
   try {
     console.log("Creating new preparation kanban:", newKanban);
     

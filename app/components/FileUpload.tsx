@@ -44,7 +44,8 @@ function FileUpload({ fileUploadOpen, setFileUploadOpen }: { fileUploadOpen: boo
             const workbook = XLSX.read(data, { type: 'array' });
 
             // 1. Check for expected sheets
-            const sheetNames = workbook.SheetNames;
+            const sheetNames = workbook.SheetNames.map(name => name.trim());
+            
             const missingSheets = fileFormat.expectedSheets.filter(
                 sheet => !sheetNames.includes(sheet)
             );
@@ -78,6 +79,7 @@ function FileUpload({ fileUploadOpen, setFileUploadOpen }: { fileUploadOpen: boo
                     default:
                         expectedHeaders = [];
                 }
+                console.log("expected: ", expectedHeaders, "headers:", headers);
                 if (
                     !expectedHeaders.every((h, i) => headers[i] === h) ||
                     headers.length !== expectedHeaders.length

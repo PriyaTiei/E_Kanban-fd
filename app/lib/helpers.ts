@@ -17,7 +17,7 @@ export const fileFormat = {
         "variant",
     ],
     expectedStationsHeaders: [
-        "name", "plant",
+        "name", "sequenceNo", "plant", 
     ],
     expectedPartsHeaders: [
         "partId", "partNumber", "name",

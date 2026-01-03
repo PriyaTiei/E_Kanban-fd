@@ -61,6 +61,10 @@ export default function ProductionLine() {
             currentProduct: null,
           })
         }
+        stationMap.set(station.id, {
+          ...stationMap.get(station.id),
+          sequenceNo: station.sequenceNo,
+        })
       })
 
       // Add current products to stations
@@ -73,7 +77,7 @@ export default function ProductionLine() {
         }
       })
 
-      const newStations = Array.from(stationMap.values()).sort((a, b) => a.id - b.id)
+      const newStations = Array.from(stationMap.values()).sort((a, b) => a.sequenceNo - b.sequenceNo)      
 
       // Check for refilled critical parts
       const currentCriticalParts = new Set<string>()

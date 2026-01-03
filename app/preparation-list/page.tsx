@@ -34,11 +34,11 @@ function PreparationListContent() {
         if (totalPages < page) page = 1 // Reset to first page on new search
       }
       const result = await fetchPreparationKanbans(queryParams)
-      const countResult = await fetchPreparationKanbansCount(queryParams)
+      const totalCount = result?.total ?? 0 // await fetchPreparationKanbansCount(queryParams)
       
       setData(result?.kanbans || []);
       setIsFrozenData(result?.isFrozenData || false)
-      setTotalKanbans(countResult?.total || 0)
+      setTotalKanbans(totalCount)
       setProcessFilters(result?.processes || null)
       setCurrentPage(page)
       setTotalPages(result?.totalPages || 1)

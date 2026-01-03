@@ -32,11 +32,11 @@ function SupplyListContent() {
       }
       console.log("Fetching with queryParams:", queryParams);
       const result = await fetchSupplyKanbans(queryParams)
-      const countResult = await fetchSupplyKanbansCount(queryParams)
+      const totalCount = result?.total ?? 0 // await fetchSupplyKanbansCount(queryParams)
       const kanbans = result?.kanbans || []
       
       setData(kanbans)
-      setTotalKanbans(countResult?.total || 0)
+      setTotalKanbans(totalCount)
       setProcessFilters(result?.processes || null)
       setCurrentPage(page)
       console.log("totalPages:", result?.totalPages || 1);

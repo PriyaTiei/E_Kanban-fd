@@ -36,6 +36,7 @@ export default function SearchBar({
     <div className={`relative flex items-center ${className}`}>
       <Search className="absolute left-3 h-4 w-4 text-gray-400" />
       <Input
+      name="search"
         type="text"
         value={value}
         onChange={e => setValue(e.target.value)}
