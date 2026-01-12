@@ -172,12 +172,10 @@ export default function Header() {
                         <p className={`text-xs ${getRoleColor(user.role)} capitalize`}>{user.role}</p>
                       </div>
                       <div className="w-full pt-2 border border-gray-700 rounded-lg flex flex-col judtify-center space-y-2">
-                        <p className="mx-2 inline-block text-sm text-gray-400 font-light text-balance">
-                          {`${user.plantName ? user.plantName : user.plantId === 1 ? "GD" : "TNGA"} Logistics`}
+                        <p className="mx-2 inline-block self-center text-sm text-gray-400 font-light text-balance">
+                          {`Plant ${user.plantName ? user.plantName : user.plantId === 1 ? "GD" : "TNGA"}`}
                         </p>
-                        {user.role !== 'admin' && user.plantName ?
-                          <p className="text-sm text-gray-400">Plant: {user.plantName}</p>
-                          :
+                        {user.role === 'admin' && 
                           <div className="w-full border-t border-gray-700 flex flex-row items-center">
                             {["GD", "TNGA"].map((plant, index) => (
                               <button 

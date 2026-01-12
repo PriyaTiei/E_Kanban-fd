@@ -69,11 +69,6 @@ export default function KanbanTable({
   // Check if current process is frozen (from data)
   const isFrozen = selectedProcess ? isFrozenData === true : false
 
-  useEffect(() => {
-    console.log(`Selected process changed to: ${selectedProcess}`);
-    
-  },[selectedProcess])
-
   const handleProcessFilter = (process: string | null) => {
     const params = new URLSearchParams(searchParams.toString())
     if (process) {
@@ -290,7 +285,7 @@ export default function KanbanTable({
                       <BreadcrumbEllipsis />
                     </DropdownMenuTrigger>
                     <DropdownMenuContent className="bg-gray-900 border border-gray-700 rounded-md py-3 px-2 flex flex-col gap-2 text-xs">
-                      { user?.role === "admin" && title === "Preparation List" &&
+                      { title === "Preparation List" &&
                         <>
                           <DropdownMenuItem>
                             <button className="w-full px-2 py-1 rounded flex items-center" onClick={() => setRequestFormOpen(true)}>
@@ -298,29 +293,37 @@ export default function KanbanTable({
                               Raise a Kanban Request
                             </button>
                           </DropdownMenuItem>
-                          <DropdownMenuSeparator className="h-[1px] bg-gray-700" />
                         </>
                       }
-                      <DropdownMenuItem>
-                        <button className="w-full px-2 py-1 rounded flex items-center" onClick={() => handleAction(data.map(item => item.id), "update")}>
-                          <CircleCheckBig className="h-6 w-6 p-[0.125rem] mr-2 bg-green-600 text-black rounded-full" />
-                          Mark current page as done
-                        </button>
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator className="h-[1px] bg-gray-700" />
-                      <DropdownMenuItem>
-                        <button className="w-full px-2 py-1 rounded flex items-center" onClick={() => handleModifyAllAction( "update")}>
-                          <CircleCheckBig className="h-6 w-6 p-[0.125rem] mr-2 bg-green-600 text-black rounded-full" />
-                          Mark all as done
-                        </button>
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator className="h-[1px] bg-gray-700" />
-                      <DropdownMenuItem>
-                        <button className="w-full px-2 py-1 rounded flex items-center" onClick={() => handleAction(data.map(item => item.id), "delete")}>
-                          <CircleX className="h-6 w-6 p-[0.125rem] mr-2 bg-red-600/90 text-black rounded-full" />
-                          Reject all
-                        </button>
-                      </DropdownMenuItem>
+                      {title === "Preparation List" && user?.role === "admin" && <DropdownMenuSeparator className="h-[1px] bg-gray-700" />}
+                      {(user?.role === "admin" || title === "Supply List") && (
+                        <>
+                          <DropdownMenuItem>
+                            <button className="w-full px-2 py-1 rounded flex items-center" onClick={() => handleAction(data.map(item => item.id), "update")}>
+                              <CircleCheckBig className="h-6 w-6 p-[0.125rem] mr-2 bg-green-600 text-black rounded-full" />
+                              Mark current page as done
+                            </button>
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator className="h-[1px] bg-gray-700" />
+                          <DropdownMenuItem>
+                            <button className="w-full px-2 py-1 rounded flex items-center" onClick={() => handleModifyAllAction( "update")}>
+                              <CircleCheckBig className="h-6 w-6 p-[0.125rem] mr-2 bg-green-600 text-black rounded-full" />
+                              Mark all as done
+                            </button>
+                          </DropdownMenuItem>
+                          {user?.role === "admin" && 
+                            <>
+                              <DropdownMenuSeparator className="h-[1px] bg-gray-700" />
+                              <DropdownMenuItem>
+                                <button className="w-full px-2 py-1 rounded flex items-center" onClick={() => handleAction(data.map(item => item.id), "delete")}>
+                                  <CircleX className="h-6 w-6 p-[0.125rem] mr-2 bg-red-600/90 text-black rounded-full" />
+                                  Reject all
+                                </button>
+                              </DropdownMenuItem>
+                            </>
+                          }
+                        </>
+                      )}
                     </DropdownMenuContent>
                   </DropdownMenu>
                   <KanbanRequestsForm requestFormOpen={requestFormOpen} setRequestFormOpen={setRequestFormOpen} />

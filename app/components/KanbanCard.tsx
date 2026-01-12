@@ -64,49 +64,51 @@ export default function KanbanCard({ item, index, handleAction, showActions, isF
                     <span className="font-medium text-green-400 text-sm">{item.prepLocation || item.supplyLocation}</span>
                   </div>
                 </div>
-                { item?.acknowledgedAt &&
                 <div className="flex items-center space-x-2">
-                  <span className="font-medium text-white/70 text-xs">Prepared: {formatDate(String(item?.acknowledgedAt))}</span>
+                  { item?.acknowledgedAt ?
+                    <span className="font-medium text-white/70 text-xs">Prepared: {formatDate(String(item?.acknowledgedAt))}</span>
+                    : item?.requestedAt &&
+                    <span className="font-medium text-white/70 text-xs">Requested: {formatDate(String(item?.requestedAt))}</span>
+                  }
                 </div>
-                }
               </div>
             </div>
           </div>
 
           {/* Action Buttons */}
           {showActions && (
-            <div className="p-2 flex flex-col gap-2 flex-wrap">
+            <div className="p-2 max-w-16 w-full flex flex-col gap-2 flex-wrap">
               <Button
                 onClick={() => handleAction([item.id],"update")}
                 disabled={loading !== null}
-                className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                className="self-end w-full flex-1 bg-green-600 hover:bg-green-700 text-white"
                 size="sm"
               >
                 {loading === "update" ? (
                   <Loader2 className="h-4 w-4 animate-spin mr-2" />
                 ) : (
-                  <Check className="h-4 w-4 mr-2" />
+                  <Check className="h-4 w-4" />
                 )}
-                Mark Done
+                {/* Mark Done */}
               </Button>
 
-              {user?.role === "admin" ? (
+              {user?.role === "admin" && (
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <Button disabled={loading !== null} size="sm" className="flex-1 bg-red-600/90 hover:bg-red-700/90 text-white">
                       {loading === "delete" ? (
                         <Loader2 className="h-4 w-4 animate-spin mr-2" />
                       ) : (
-                        <X className="h-4 w-4 mr-2" />
+                        <X className="h-4 w-4 " />
                       )}
-                      Reject
+                      {/* Reject */}
                     </Button>
                   </AlertDialogTrigger>
                   <AlertDialogContent className="bg-gray-800 border-gray-700">
                     <AlertDialogHeader>
                       <AlertDialogTitle className="text-white">Confirm Rejection</AlertDialogTitle>
                       <AlertDialogDescription className="text-gray-300">
-                        Are you sure you want to reject this kanban request for <strong>{item.partName}</strong>? This
+                        Are you sure you want to reject this kanban request for <strong>{item.partIdNo}</strong>? This
                         action cannot be undone.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
@@ -123,24 +125,26 @@ export default function KanbanCard({ item, index, handleAction, showActions, isF
                     </AlertDialogFooter>
                   </AlertDialogContent>
                 </AlertDialog>
-              ) : (
-                <Button
-                  disabled={loading !== null}
-                  variant="destructive"
-                  size="sm"
-                  className="flex-1"
-                  onClick={() =>
-                    toast({
-                      title: "Not allowed",
-                      description: "You are not allowed to reject kanban requests.",
-                      variant: "destructive",
-                    })
-                  }
-                >
-                  <X className="h-4 w-4 mr-2" />
-                  Reject
-                </Button>
-              )}
+              ) 
+              // : (
+              //   <Button
+              //     disabled={loading !== null}
+              //     variant="destructive"
+              //     size="sm"
+              //     className="flex-1"
+              //     onClick={() =>
+              //       toast({
+              //         title: "Not allowed",
+              //         description: "You are not allowed to reject kanban requests.",
+              //         variant: "destructive",
+              //       })
+              //     }
+              //   >
+              //     <X className="h-4 w-4 mr-2" />
+              //     Reject
+              //   </Button>
+              // )
+            }
             </div>
           )}
         </div>
