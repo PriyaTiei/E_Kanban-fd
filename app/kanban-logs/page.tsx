@@ -2,12 +2,14 @@
 
 import { useEffect, useRef, useState } from "react"
 import { fetchKanbanLogs } from "../lib/api"
-import type { KanbanLogItem } from "../lib/types"
+import type { KanbanLogItem, KanbanLogQueryParams } from "../lib/types"
 import { History, RefreshCw, Filter, MapPin, Clock, CheckCircle, AlertCircle, Package } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { formatDate, getPaginationItems } from "../lib/helpers"
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import SearchBar from "../components/SearchBar"
 
 export default function KanbanLogsPage() {
   const [logs, setLogs] = useState<KanbanLogItem[]>([])
@@ -17,7 +19,9 @@ export default function KanbanLogsPage() {
   const [scrollUp, setScrollUp] = useState(true)
   const ticking = useRef(false)
   const lastScrollY = useRef(0)
-  const [filter, setFilter] = useState<"all" | "pending" | "preparation" | "supply">("all")
+  const [statusFilter, setStatusFilter] = useState<"all" | "requested" | "acknowledged" | "fulfilled">("all")
+  const [dateTimeFilter, setDateTimeFilter] = useState<string>("")
+  const [partIdNoFilter, setPartIdNoFilter] = useState<string>("")
   const limit = 20
 
   useEffect(() => {
@@ -46,7 +50,15 @@ export default function KanbanLogsPage() {
   const loadLogs = async (page = 1) => {
     setLoading(true)
     try {
-      const result = await fetchKanbanLogs(page, limit)
+      const filterParam = statusFilter === "all" ? undefined : statusFilter
+      const queryParams: KanbanLogQueryParams = {
+        status: filterParam,
+        dateTime: dateTimeFilter || undefined,
+        search: partIdNoFilter || undefined,
+        page,
+        limit,
+      }
+      const result = await fetchKanbanLogs(queryParams)
       const data = result?.logs || []
       setTotalPages(result?.totalPages || 1)
       setLogs(data)
@@ -58,29 +70,24 @@ export default function KanbanLogsPage() {
     }
   }
 
-  useEffect(() => {
-    loadLogs(currentPage)
-    // eslint-disable-next-line
-  }, [currentPage])
+  const handleDateTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    if (value) {
+      setDateTimeFilter(value)
+    } else {
+      setDateTimeFilter("")
+    }
+  }
 
-  const filteredLogs = logs.filter((log) => {
-    if (filter === "all") return true
-    if (filter === "pending") {
-      return log.acknowledgedByLogistics === false && log.fulfilled === false
-    }
-    if (filter === "preparation") {
-      return log.acknowledgedByLogistics === true && log.fulfilled === false
-    }
-    if (filter === "supply") {
-      return log.fulfilled === true
-    }
-    return true
-  })
+  useEffect(() => {
+    loadLogs(currentPage);
+  }, [currentPage, statusFilter, dateTimeFilter, partIdNoFilter]);
+
 
   const getStatusInfo = (log: KanbanLogItem) => {
     if (log.fulfilled) {
       return {
-        status: "Fulfilled",
+        status: "Supplied",
         color: "text-green-400",
         bgColor: "bg-green-900/20",
         borderColor: "border-green-700",
@@ -88,7 +95,7 @@ export default function KanbanLogsPage() {
       }
     } else if (log.acknowledgedByLogistics) {
       return {
-        status: "Acknowledged",
+        status: "Prepared",
         color: "text-blue-400",
         bgColor: "bg-blue-900/20",
         borderColor: "border-blue-700",
@@ -106,7 +113,7 @@ export default function KanbanLogsPage() {
   }
 
   // Group logs by date
-  const groupedLogs = filteredLogs.reduce(
+  const groupedLogs = logs.reduce(
     (groups, log) => {
       const date = new Date(log.requestedAt).toDateString()
       if (!groups[date]) {
@@ -141,26 +148,55 @@ export default function KanbanLogsPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-6 md:mb-8 gap-4 flex-wrap">
+      <div className="flex items-start justify-between mb-6 md:mb-8 gap-4 flex-wrap">
         <div className="flex items-center space-x-3">
           <History className="h-6 w-6 md:h-8 md:w-8 text-blue-500" />
           <h1 className="text-2xl md:text-3xl font-bold text-white">Kanban Logs</h1>
         </div>
 
         <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
-          <div className="flex items-center space-x-2">
-            <Filter className="h-5 w-5 text-gray-400" />
-            <select
-              value={filter}
-              onChange={(e) => setFilter(e.target.value as "all" | "pending" | "preparation" | "supply")}
-              className="bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 text-xs md:text-sm"
-            >
-              <option value="all">All Logs</option>
-              <option value="pending">Pending</option>
-              <option value="preparation">Preparation</option>
-              <option value="supply">Supply</option>
-            </select>
-          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <div className="flex items-center cursor-pointer px-2 py-2 border border-gray-700 rounded-full hover:bg-gray-700 transition-colors">
+                <Filter className="h-5 w-5 text-gray-400" />
+              </div>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-56 md:w-64 bg-gray-800 border-gray-700">
+              <div className="w-full flex items-center flex-wrap gap-2">
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value as "all" | "requested" | "acknowledged" | "fulfilled")}
+                  className="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 leading-6 text-xs md:text-sm"
+                >
+                  <option value="all">Select Status</option>
+                  <option value="requested">Pending</option>
+                  <option value="acknowledged">Prepared</option>
+                  <option value="fulfilled">Supplied</option>
+                </select>
+                {/* Date and time filter */}
+                <input
+                  type="datetime-local"
+                  placeholder="select date and time"
+                  value={dateTimeFilter}
+                  onChange={handleDateTimeChange}
+                  className="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 text-xs md:text-sm"
+                />
+                {/* <input
+                  type="time"
+                  value={timeFilter}
+                  onChange={(e) => setTimeFilter(e.target.value)}
+                  className="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 text-xs md:text-sm"
+                /> */}
+                <SearchBar
+                  placeholder="Search by Part or Station"
+                  defaultValue={partIdNoFilter}
+                  debounceMs={2000}
+                  onSearch={setPartIdNoFilter}
+                  className="w-full border border-gray-600 text-white rounded-lg px-3 py-2 text-xs md:text-sm"
+                />
+              </div>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Button onClick={() => loadLogs()} disabled={loading} className="bg-blue-600 hover:bg-blue-700 text-white text-xs md:text-sm">
             <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />
             Refresh
@@ -254,14 +290,14 @@ export default function KanbanLogsPage() {
                                         {log.acknowledgedByLogistics && (
                                           <div className="flex flex-col justify-end items-end gap-2 text-xs md:text-sm">
                                             <div>
-                                              <span className="text-gray-400">Acknowledged:</span>
+                                              <span className="text-gray-400">Prepared:</span>
                                               <span className="ml-2 text-blue-400">
                                                 {log.acknowledgedAt ? formatDate(String(log.acknowledgedAt)) : "Yes"}
                                               </span>
                                             </div>
                                             {log.fulfilled && log.fulfilledAt && (
                                               <div>
-                                                <span className="text-gray-400">Fulfilled:</span>
+                                                <span className="text-gray-400">Supplied:</span>
                                                 <span className="ml-2 text-green-400">
                                                   {formatDate(String(log.fulfilledAt))}
                                                 </span>
@@ -289,16 +325,6 @@ export default function KanbanLogsPage() {
       <div className="flex justify-center mt-8">
         <Pagination>
           <PaginationContent>
-            {/* <PaginationItem>
-              <PaginationPrevious
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault()
-                  if (currentPage > 1) loadLogs(currentPage - 1)
-                }}
-                className={`${currentPage === 1 ? "invisible" : ""}`}
-              />
-            </PaginationItem> */}
             {pages.map((page, idx) => (
               <PaginationItem key={idx}>
                 {page === '...' ? (
@@ -306,7 +332,7 @@ export default function KanbanLogsPage() {
                 ) : (
                   <PaginationLink
                     href="#"
-                    className={`${currentPage === idx + 1 ? "bg-blue-600 text-white hover:bg-blue-600" : ""}`}
+                    className={`${typeof page === 'number' && currentPage === Number(page) ? "bg-blue-600 text-white hover:bg-blue-600" : ""}`}
                     isActive={currentPage === page}
                     onClick={(e) => {
                       e.preventDefault()
@@ -318,16 +344,6 @@ export default function KanbanLogsPage() {
                 )}
               </PaginationItem>
             ))}
-            {/* <PaginationItem>
-              <PaginationNext
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault()
-                  if (currentPage < totalPages) loadLogs(currentPage + 1)
-                }}
-              className={`${currentPage === totalPages ? "invisible" : ""}`}
-              />
-            </PaginationItem> */}
           </PaginationContent>
         </Pagination>
       </div>

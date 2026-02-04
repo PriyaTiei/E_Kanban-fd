@@ -148,6 +148,11 @@ export interface QueryParams {
   limit?: number
 }
 
+export interface KanbanLogQueryParams extends QueryParams {
+  status?: "all" | "requested" | "acknowledged" | "fulfilled" 
+  dateTime?: string | null
+}
+
 export interface RankPart{
   id: number | null;
   partId: string | null;

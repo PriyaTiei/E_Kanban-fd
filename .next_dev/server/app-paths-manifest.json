@@ -1,7 +1,6 @@
 {
   "/login/page": "app/login/page.js",
-  "/page": "app/page.js",
   "/preparation-list/page": "app/preparation-list/page.js",
   "/supply-list/page": "app/supply-list/page.js",
-  "/settings/edit-stations/page": "app/settings/edit-stations/page.js"
+  "/kanban-logs/page": "app/kanban-logs/page.js"
 }

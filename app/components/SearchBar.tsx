@@ -41,7 +41,7 @@ export default function SearchBar({
         value={value}
         onChange={e => setValue(e.target.value)}
         placeholder={placeholder}
-        className="pl-9 h-8 py-1 bg-gray-800"
+        className="pl-9 h-8 py-1 bg-gray-800 text-xs md:text-sm"
         autoComplete="off"
       />
     </div>

@@ -1,5 +1,4 @@
-import { stringify } from "querystring";
-import { ActionResponse, ErrorResponse, FileUploadResponse, KanbanCreateRequest, KanbanItem, KanbanLogItem, KanbanLogResponse, KanbanModifyDetails, PreparationKanbanResponse, Product, QueryParams, RankPart, StationPart, SupplyKanbanResponse, User } from "./types"
+import { ActionResponse, ErrorResponse, FileUploadResponse, KanbanCreateRequest, KanbanItem, KanbanLogItem, KanbanLogQueryParams, KanbanLogResponse, KanbanModifyDetails, PreparationKanbanResponse, Product, QueryParams, RankPart, StationPart, SupplyKanbanResponse, User } from "./types"
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE!;
 
@@ -232,9 +231,7 @@ export async function fetchSupplyKanbansCount(queryParams?: QueryParams): Promis
           url.searchParams.append(key, String(value))
         }
       })
-    }
-  console.log("Fetching supply kanbans count with URL:", url.toString());
-  
+    }  
   try {
     const response = await fetch(url.toString(), {
       credentials: "include",
@@ -530,11 +527,17 @@ export async function fetchUserProfile(): Promise<User | ErrorResponse | null> {
   }
 }
 
-export async function fetchKanbanLogs(currentPage?:number, limit?:number): Promise<KanbanLogResponse | null> {
-  const pageParam = currentPage ? `?page=${currentPage}` : ''
-  const limitParam = limit ? `${currentPage ? '&' : '?'}limit=${limit}` : ''
+export async function fetchKanbanLogs(queryParams: KanbanLogQueryParams): Promise<KanbanLogResponse | null> {
+  const url = new URL(`${API_BASE}/kanban-logs`)
+  if (queryParams) {
+    Object.entries(queryParams).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        url.searchParams.append(key, String(value))
+      }
+    })
+  }
   try {
-    const response = await fetch(`${API_BASE}/kanban-logs${pageParam}${limitParam}`, {
+    const response = await fetch(url, {
       credentials: "include",
     })
     if (!response.ok) throw new Error("Failed to fetch kanban logs")
