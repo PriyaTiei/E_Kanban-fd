@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { Factory, Forklift, Package, User, LogOut, History, Settings } from "lucide-react"
+import { Factory, Forklift, Package, User, LogOut, History, Settings, Timer } from "lucide-react"
 import { useAuth } from "../contexts/AuthContext"
 import { logoutUser } from "../lib/api"
 import { useToast } from "@/hooks/use-toast"
@@ -10,6 +10,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import SidebarCollapseButton from "./AppSidebarCollapseBtn"
 import { useSidebar } from "../contexts/SideBarContext"
 import { useEffect } from "react"
+import UserMenu from "./UserMenu"
 
 function CustomSidebar({ visible = true }: { visible?: boolean }) {
   const pathname = usePathname()
@@ -21,8 +22,9 @@ function CustomSidebar({ visible = true }: { visible?: boolean }) {
     { href: "/", label: "Production Line", icon: Factory },
     { href: "/preparation-list", label: "Preparation List", icon: Package },
     { href: "/supply-list", label: "Supply List", icon: Forklift },
+    { href: "/delay-list", label: "Delay List", icon: Timer },
     { href: "/kanban-logs", label: "Kanban Logs", icon: History },
-    ...(user?.role === "admin" ? [{ href: "/settings", label: "Settings", icon: Settings }] : []),
+    // ...(user?.role === "admin" ? [{ href: "/settings", label: "Settings", icon: Settings }] : []),
   ]
 
   const handleLogout = async () => {
@@ -60,34 +62,19 @@ function CustomSidebar({ visible = true }: { visible?: boolean }) {
 
   return (
     <aside
-      className={`fixed top-0 left-0 z-50 h-full w-fit bg-gray-800 border-r border-gray-700 flex-col items-center hidden sm:flex md:hidden
+      className={`
+        hidden md:hidden landscape:max-md:flex overflow-y-auto no-scrollbar
+        fixed top-0 left-0 z-40 h-full w-fit
+        bg-gray-800 border-r border-gray-700 
+        flex-col items-center 
         transition-transform duration-300 ease-in-out
-        ${visible ? "translate-x-0" : "-translate-x-full"}
+        ${visible ? "translate-x-0 visible" : "-translate-x-full invisible"}
       `}
     >
-      {/* <div className="p-4 flex items-center justify-between">
-          <Image
-            src="/images/Tiei_logo.png"
-            alt="TIEI logo"
-            width={24}
-            height={24}
-            className="h-6 w-auto object-cover object-left mx-auto"
-            priority
-          />
-        </div> */}
-
       {/* Content */}
-      <div className="px-2 flex-1 flex flex-col justify-center w-full">
-        {/* User Info */}
-        {/* <div className="my-8">
-          <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center">
-            <User className="h-4 w-4 text-gray-300" />
-          </div>
-          <hr className="my-2 border-gray-700" />
-        </div> */}
-
+      <div className="px-2 pt-16 flex-1 flex flex-col w-full">
         {/* Navigation */}
-        <div className="flex flex-col items-center gap-2">
+        <div className="h-full max-h-60 flex flex-col items-center justify-between gap-1">
           {navItems.map(({ href, label, icon: Icon }) => (
             <div key={href} className="">
               <TooltipProvider>
@@ -120,42 +107,7 @@ function CustomSidebar({ visible = true }: { visible?: boolean }) {
 
       {/* Footer */}
       <div className="p-2 justify-self-end">
-        <div className="mb-2">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gray-700 text-gray-300">
-                  <User className="h-4 w-4" />
-                </div>
-              </TooltipTrigger>
-              <TooltipContent side="right" className="bg-gray-700 text-white border-gray-600">
-                <div className="text-xs">
-                  <p className="font-medium">{user.username}</p>
-                  <p className={`${getRoleColor(user.role)} capitalize`}>{user.role}</p>
-                </div>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </div>
-
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                onClick={handleLogout}
-                className="flex items-center justify-center w-8 h-8 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white"
-              >
-                <LogOut className="h-5 w-5" />
-                {/* {state === "expanded" && <span className="text-sm">Log out</span>} */}
-              </button>
-            </TooltipTrigger>
-            {/* {state === "collapsed" && ( */}
-            <TooltipContent side="right" className="bg-gray-700 text-white border-gray-600">
-              Log out
-            </TooltipContent>
-            {/* )} */}
-          </Tooltip>
-        </TooltipProvider>
+        <UserMenu/>
       </div>
     </aside>
   )

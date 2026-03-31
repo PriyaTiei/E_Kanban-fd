@@ -16,7 +16,7 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
     <SidebarContext.Provider value={{ visible, toggle, setVisible }}>
         <div
             className={`transition-all duration-300 ease-in-out 
-               pl-0 ${visible ? "sm:pl-12" : "sm:pl-0"} md:pl-0
+               pl-0 ${visible ? "landscape:max-md:pl-12" : "landscape:max-md:pl-0"} md:pl-0
             `}
         >
             {children}

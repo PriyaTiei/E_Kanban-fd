@@ -244,6 +244,49 @@ export async function fetchSupplyKanbansCount(queryParams?: QueryParams): Promis
   }
 }
 
+export async function fetchDelayKanbans(queryParams?: QueryParams): Promise<SupplyKanbanResponse | null> {
+  let url = new URL(`${API_BASE}/delay-sheet/kanbans`)
+  if (queryParams) {
+    Object.entries(queryParams).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        url.searchParams.append(key, String(value))
+      }
+    })
+  }
+
+  try {
+    const response = await fetch(url.toString(), {
+      credentials: "include",
+    })
+    if (!response.ok) throw new Error("Failed to fetch delay kanbans")
+    return await response.json()
+  } catch (error) {
+    console.error("Error fetching delay kanbans:", error)
+    return null;
+  }
+}
+
+export async function fetchDelayKanbansCount(queryParams?: QueryParams): Promise<{ total: number } | null> {
+  let url = new URL(`${API_BASE}/delay-sheet/kanbans/count`)
+    if (queryParams) {
+      Object.entries(queryParams).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          url.searchParams.append(key, String(value))
+        }
+      })
+    }  
+  try {
+    const response = await fetch(url.toString(), {
+      credentials: "include",
+    })
+    if (!response.ok) throw new Error("Failed to fetch delay kanbans count")
+    return await response.json()
+  } catch (error) {
+    console.error("Error fetching delay kanbans count:", error)
+    return null;
+  }
+}
+
 export async function fetchRankParts(): Promise<RankPart[]> {
   try {
     const response = await fetch(`${API_BASE}/parts/rank-parts`, {
@@ -398,6 +441,81 @@ export async function deleteAllSupplyKanban(process?: string | null): Promise<bo
     return response.ok;
   } catch (error) {
     console.error("Error deleting supply kanban:", error);
+    return false
+  }
+}
+
+export async function reportDelay(updateKanban:KanbanModifyDetails): Promise<boolean> {
+  try {
+    const response = await fetch(`${API_BASE}/preparation-sheet/kanban/report`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(updateKanban),
+      credentials: "include",
+    })
+    return response.ok
+  } catch (error) {
+    console.error("Error updating delay kanban:", error)
+    return false
+  }
+}
+
+export async function updateDelayKanban(updateKanban:KanbanModifyDetails): Promise<boolean> {
+  try {
+    const response = await fetch(`${API_BASE}/delay-sheet/kanban`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(updateKanban),
+      credentials: "include",
+    })
+    return response.ok
+  } catch (error) {
+    console.error("Error updating delay kanban:", error)
+    return false
+  }
+}
+
+
+export async function updateAllDelayKanban(process?: string | null): Promise<boolean> {
+  try {
+    const response = await fetch(`${API_BASE}/delay-sheet/kanban/all${process ? `?process=${process}` : ""}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+    })
+    return response.ok
+  } catch (error) {
+    console.error("Error updating delay kanbans:", error)
+    return false
+  }
+}
+
+
+export async function deleteDelayKanban(deleteKanban: KanbanModifyDetails): Promise<boolean> {
+  try {
+    const response = await fetch(`${API_BASE}/delay-sheet/kanban`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(deleteKanban),
+      credentials: "include",
+    });
+    return response.ok;
+  } catch (error) {
+    console.error("Error deleting delay kanban:", error);
+    return false
+  }
+}
+
+export async function deleteAllDelayKanban(process?: string | null): Promise<boolean> {
+  try {
+    const response = await fetch(`${API_BASE}/delay-sheet/kanban/all${process ? `?process=${process}` : ""}`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+    });
+    return response.ok;
+  } catch (error) {
+    console.error("Error deleting delay kanban:", error);
     return false
   }
 }

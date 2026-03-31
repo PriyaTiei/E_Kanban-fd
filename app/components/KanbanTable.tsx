@@ -1,10 +1,12 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { Check, X, Loader2, History, Snowflake, Play, CircleCheck, CircleCheckBig, CircleX, KanbanSquare } from "lucide-react"
+import {  useState } from "react"
+import { useSearchParams, useRouter } from "next/navigation"
 import Link from "next/link"
 import type { KanbanItem, KanbanModifyDetails } from "../lib/types"
+import { useAuth } from "../contexts/AuthContext"
 import { useToast } from "@/hooks/use-toast"
+import { Loader2, History, Snowflake, Play, CircleCheck, CircleCheckBig, CircleX, KanbanSquare, Timer, Undo2 } from "lucide-react"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,14 +19,13 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
-import { useAuth } from "../contexts/AuthContext"
-import { useSearchParams, useRouter } from "next/navigation"
-import { freezeProcess, unfreezeProcess } from "../lib/api"
+import { BreadcrumbEllipsis } from "@/components/ui/breadcrumb"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu"
 import KanbanCard from "./KanbanCard"
-import { Breadcrumb, BreadcrumbEllipsis, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu"
 import KanbanRequestsForm from "./KanbansRequestForm"
 import SearchBar from "./SearchBar"
+import { freezeProcess, unfreezeProcess } from "../lib/api"
 
 interface KanbanTableProps {
   data: KanbanItem[]
@@ -36,6 +37,8 @@ interface KanbanTableProps {
   onUpdateAll: (process: string | undefined | null) => Promise<boolean>
   onDelete: (deleteKanban: KanbanModifyDetails) => Promise<boolean>
   onDeleteAll: (process: string | undefined | null) => Promise<boolean>
+  onReport?: (reportKanban: KanbanModifyDetails) => Promise<boolean>
+  onUndoReport?: (reportKanban: KanbanModifyDetails) => Promise<boolean>
   title: string
   onRefresh?: () => void
 }
@@ -50,11 +53,13 @@ export default function KanbanTable({
   onUpdateAll,
   onDelete,
   onDeleteAll,
+  onReport,
+  onUndoReport,
   title,
   onRefresh,
 }: KanbanTableProps) {
   const { user } = useAuth()
-  const [loading, setLoading] = useState<{ [key: number]: "update" | "delete" | null }>({})
+  const [loading, setLoading] = useState<{ [key: number]: "update" | "delete" | "report" | "undo_report" | null }>({})
   const [freezeLoading, setFreezeLoading] = useState(false)
   const [requestFormOpen, setRequestFormOpen] = useState(false)
   const { toast } = useToast()
@@ -65,7 +70,15 @@ export default function KanbanTable({
   const [selectedProcess, setSelectedProcess] = useState<string | null>(paramProcess)
   const searchedParameter = searchParams.get("search") ? String(searchParams.get("search")!) : null
   const isPreparationSheet = title === "Preparation List"
+  const isSupplySheet = title === "Supply List"
+  const isDelaySheet = title === "Delay List"  
 
+  const isAllowedPrepSheetUsers = user?.role === "admin" || user?.role === "supplier"
+  const isAllowedSupplySheetUsers = user?.role === "admin" || user?.role === "supplier"
+  const isAllowedDelaySheetUsers = user?.role === "admin" || user?.role === "logistics"
+
+  const showActions = selectedProcess !== null && ((isPreparationSheet && isAllowedPrepSheetUsers) || (isSupplySheet && isAllowedSupplySheetUsers) || (isDelaySheet && isAllowedDelaySheetUsers))
+  
   // Check if current process is frozen (from data)
   const isFrozen = selectedProcess ? isFrozenData === true : false
 
@@ -126,24 +139,25 @@ export default function KanbanTable({
     }
   }
 
-  const handleAction = async (kanbanIds: number[], action: "update" | "delete") => {
+  const handleAction = async (kanbanIds: number[], action: "update" | "delete" | "report" | "undo_report") => {
     console.log(`Handling action: ${action} for kanbanId: ${kanbanIds}`)
 
     const stateUpdate = kanbanIds.reduce((acc, id) => {
       acc[id] = action;
       return acc;
-    }, {} as Record<number, "update" | "delete">)
+    }, {} as Record<number, "update" | "delete" | "report" | "undo_report" | null>)
     setLoading((prev) => ({ ...prev, ...stateUpdate }))
 
     try {
       const modifyDetails = { kanbanIds}
       console.log(`Attempting to ${action} kanban item:`, modifyDetails)
 
-      const success = action === "update" ? await onUpdate(modifyDetails) : await onDelete(modifyDetails)
+      const success = action === "update" ? 
+      await onUpdate(modifyDetails) : action === "report" ? await onReport?.(modifyDetails) : action === "undo_report" ? await onUndoReport?.(modifyDetails) : await onDelete(modifyDetails)
       if (success) {
         toast({
-          title: action === "update" ? "Kanban Updated" : "Kanban Deleted",
-          description: `Kanban item has been successfully ${action === "update" ? "marked as done" : "rejected"}.`,
+          title: action === "update" ? "Kanban Updated" : action === "report" ? "Kanban Reported" : action === "delete" ? "Kanban Deleted" : "Report Undone",
+          description: `Item has been successfully ${action === "update" ? "marked as done" : action === "report" ? "reported as delayed" : action === "delete" ? "rejected" : "removed from delay report"}.`,
         })
         onRefresh?.()
       } else {
@@ -164,7 +178,7 @@ export default function KanbanTable({
       const stateUpdate = kanbanIds.reduce((acc, id) => {
         acc[id] = null;
         return acc;
-      }, {} as Record<number, "update" | "delete" | null>)
+      }, {} as Record<number, "update" | "delete" | "report" | null>)
       setLoading((prev) => ({ ...prev, ...stateUpdate }))
     }
   }
@@ -202,8 +216,15 @@ export default function KanbanTable({
       "id",
       "partId",
       "partName",
+      "arrangedAt",
+      "reportId",
     ]
-    return !commonFilters.includes(key)
+
+    const prepSheetFilters = [
+      "reportedAt",
+    ]
+    const filtersToApply = isPreparationSheet ? [...commonFilters, ...prepSheetFilters] : commonFilters
+    return !filtersToApply.includes(key)
   }) as Partial<keyof KanbanItem>[] : [] as Partial<keyof KanbanItem>[]
 
   return (
@@ -230,10 +251,10 @@ export default function KanbanTable({
 
         {/* Process Filter Buttons */}
         {(
-          <div>
+          <div className="w-full">
             <div className="text-xs md:text-sm text-gray-400 mb-2">Select Process</div>
-            <div className="flex flex-row items-center justify-between gap-3 flex-wrap">
-              <div className="flex flex-wrap gap-2">
+            <div className="w-full flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+              <div className="flex gap-2 overflow-x-auto whitespace-nowrap">
                 <button
                   onClick={() => handleProcessFilter(null)}
                   className={`px-3 py-1 text-sm font-medium transition-colors rounded ${
@@ -256,78 +277,82 @@ export default function KanbanTable({
                   </button>
                 ))}
               </div>
-              <div className="self-end flex items-center gap-2 flex-wrap">
-                {isPreparationSheet && selectedProcess && selectedProcess !== 'rank parts' && (
-                  <Button
-                    onClick={handleFreezeToggle}
-                    disabled={freezeLoading}
-                    size="sm"
-                    className={`w-fit h-8 ${
-                      isFrozen
-                        ? "bg-orange-600 hover:bg-orange-700 text-white"
-                        : "bg-blue-600 hover:bg-blue-700 text-white"
-                      }`}
-                      >
-                    {freezeLoading ? (
-                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    ) : isFrozen ? (
-                      <Play className="h-4 w-4 mr-2" />
-                    ) : (
-                      <Snowflake className="h-4 w-4 mr-2" />
-                    )}
-                    <span>{isFrozen ? "Unfreeze" : "Freeze"} List</span>
-                  </Button>
-                )}
-                <SearchBar onSearch={handleSearchFilter} defaultValue={searchedParameter || ""} className="max-w-48" />
-                <div>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger>
-                      <BreadcrumbEllipsis />
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="bg-gray-900 border border-gray-700 rounded-md py-3 px-2 flex flex-col gap-2 text-xs">
-                      { title === "Preparation List" &&
-                        <>
-                          <DropdownMenuItem>
-                            <button className="w-full px-2 py-1 rounded flex items-center" onClick={() => setRequestFormOpen(true)}>
-                              <KanbanSquare className="h-6 w-6 p-[0.125rem] mr-2 bg-blue-600 text-black rounded" />
-                              Raise a Kanban Request
-                            </button>
-                          </DropdownMenuItem>
-                        </>
-                      }
-                      {title === "Preparation List" && user?.role === "admin" && <DropdownMenuSeparator className="h-[1px] bg-gray-700" />}
-                      {(user?.role === "admin" || title === "Supply List") && (
-                        <>
-                          <DropdownMenuItem>
-                            <button className="w-full px-2 py-1 rounded flex items-center" onClick={() => handleAction(data.map(item => item.id), "update")}>
-                              <CircleCheckBig className="h-6 w-6 p-[0.125rem] mr-2 bg-green-600 text-black rounded-full" />
-                              Mark current page as done
-                            </button>
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator className="h-[1px] bg-gray-700" />
-                          <DropdownMenuItem>
-                            <button className="w-full px-2 py-1 rounded flex items-center" onClick={() => handleModifyAllAction( "update")}>
-                              <CircleCheckBig className="h-6 w-6 p-[0.125rem] mr-2 bg-green-600 text-black rounded-full" />
-                              Mark all as done
-                            </button>
-                          </DropdownMenuItem>
-                          {user?.role === "admin" && 
-                            <>
-                              <DropdownMenuSeparator className="h-[1px] bg-gray-700" />
-                              <DropdownMenuItem>
-                                <button className="w-full px-2 py-1 rounded flex items-center" onClick={() => handleAction(data.map(item => item.id), "delete")}>
-                                  <CircleX className="h-6 w-6 p-[0.125rem] mr-2 bg-red-600/90 text-black rounded-full" />
-                                  Reject all
-                                </button>
-                              </DropdownMenuItem>
-                            </>
-                          }
-                        </>
+              <div className="w-full md:w-fit flex items-center gap-2 flex-wrap">
+                {/* <div className="flex items-center gap-2 flex-wrap"> */}
+                  {isPreparationSheet && showActions && selectedProcess && selectedProcess !== 'rank parts' && (
+                    <Button
+                      onClick={handleFreezeToggle}
+                      disabled={freezeLoading}
+                      size="sm"
+                      className={`w-fit h-8 ${
+                        isFrozen
+                          ? "bg-orange-600 hover:bg-orange-700 text-white"
+                          : "bg-blue-600 hover:bg-blue-700 text-white"
+                        }`}
+                        >
+                      {freezeLoading ? (
+                        <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                      ) : isFrozen ? (
+                        <Play className="h-4 w-4 mr-1" />
+                      ) : (
+                        <Snowflake className="h-4 w-4 mr-1" />
                       )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                  <KanbanRequestsForm requestFormOpen={requestFormOpen} setRequestFormOpen={setRequestFormOpen} />
-                </div>
+                      <span>{isFrozen ? "Unfreeze" : "Freeze"} List</span>
+                    </Button>
+                  )}
+                  <SearchBar onSearch={handleSearchFilter} defaultValue={searchedParameter || ""} className="w-auto min-w-28 max-w-44 lg:max-w-full" />
+                {/* </div> */}
+                { !(isDelaySheet && user?.role === "logistics") && showActions && (
+                  <div className="ml-auto">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger>
+                        <BreadcrumbEllipsis />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="z-50 bg-gray-900 border border-gray-700 rounded-md py-3 px-2 flex flex-col gap-2 text-xs">
+                        { isPreparationSheet &&
+                          <>
+                            <DropdownMenuItem>
+                              <button className="w-full px-2 py-1 rounded flex items-center" onClick={() => setRequestFormOpen(true)}>
+                                <KanbanSquare className="h-6 w-6 p-[0.125rem] mr-2 bg-blue-600 text-black rounded" />
+                                Raise a Kanban Request
+                              </button>
+                            </DropdownMenuItem>
+                          </>
+                        }
+                        {isPreparationSheet && user?.role === "admin" && <DropdownMenuSeparator className="h-[1px] bg-gray-700" />}
+                        {(user?.role === "admin" || isSupplySheet) && (
+                          <>
+                            <DropdownMenuItem>
+                              <button className="w-full px-2 py-1 rounded flex items-center" onClick={() => handleAction(data.map(item => item.id), "update")}>
+                                <CircleCheckBig className="h-6 w-6 p-[0.125rem] mr-2 bg-green-600 text-black rounded-full" />
+                                Mark current page as done
+                              </button>
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator className="h-[1px] bg-gray-700" />
+                            <DropdownMenuItem>
+                              <button className="w-full px-2 py-1 rounded flex items-center" onClick={() => handleModifyAllAction( "update")}>
+                                <CircleCheckBig className="h-6 w-6 p-[0.125rem] mr-2 bg-green-600 text-black rounded-full" />
+                                Mark all as done
+                              </button>
+                            </DropdownMenuItem>
+                            {user?.role === "admin" && 
+                              <>
+                                <DropdownMenuSeparator className="h-[1px] bg-gray-700" />
+                                <DropdownMenuItem>
+                                  <button className="w-full px-2 py-1 rounded flex items-center" onClick={() => handleAction(data.map(item => item.id), "delete")}>
+                                    <CircleX className="h-6 w-6 p-[0.125rem] mr-2 bg-red-600/90 text-black rounded-full" />
+                                    Reject all
+                                  </button>
+                                </DropdownMenuItem>
+                              </>
+                            }
+                          </>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                    <KanbanRequestsForm requestFormOpen={requestFormOpen} setRequestFormOpen={setRequestFormOpen} />
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -348,8 +373,10 @@ export default function KanbanTable({
                   index={index}
                   handleAction={handleAction}
                   loading={loading[item.id] || null}
-                  isPreparationSheet={title === "Preparation List"}
-                  showActions={selectedProcess !== null}
+                  isPreparationSheet={isPreparationSheet}
+                  isSupplySheet={isSupplySheet}
+                  // isDelaySheet={isDelaySheet}
+                  showActions={showActions}
                   isFrozen={isFrozen}
                 />
               ))}
@@ -359,114 +386,198 @@ export default function KanbanTable({
           {/* Kanban Table for Desktop View */}
           <div className="hidden md:block table-container">
             <div className="overflow-x-auto">
-              <table className={`w-full ${isFrozen && isPreparationSheet ? "border-2 border-blue-400" : ""}`}>
-                <thead className="bg-gray-700">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                      SL. No.
-                    </th>
-                    {columns.map((column) => (
-                      <th
-                        key={column}
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider"
-                      >
-                        {column.replace(/([A-Z])/g, " $1").replace(/^./, (str) => str.toUpperCase())}
-                      </th>
-                    ))}
-                    {selectedProcess !== null && (
-                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-300 uppercase tracking-wider flex items-center justify-center">
-                        <span>Actions</span>
-                      </th>
-                    )}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-700">
-                  {data.map((item, index) => (
-                    <tr key={item.id || index} className="hover:bg-gray-750">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{index + 1}</td>
-                      {columns.map((column) => (
-                        <td key={column} className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                          {typeof item[column] === "string" &&
-                          /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z/.test(item[column] as string)
-                            ? new Date(item[column] as string).toLocaleString()
-                            : String(item[column] ?? "-")}
-                        </td>
-                      ))}
-                      {selectedProcess !== null && (
-                        <td className="px-4 py-4 whitespace-nowrap text-center">
-                          <div className="flex justify-center space-x-2 flex-wrap">
-                            <button
-                              onClick={() => handleAction([item.id], "update")}
-                              disabled={loading[item.id] != null}
-                              className="btn-success p-0 flex items-center justify-center w-8 h-8"
-                              title="Mark as Done"
-                            >
-                              {loading[item.id] === "update" ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                              ) : (
-                                <Check className="h-4 w-4" />
+              <div className="flex items-center gap-4">
+                { isPreparationSheet &&
+                  <table className="absolute -translate-x-1/2 z-10">
+                    <thead>
+                      <tr >
+                        <th className="px-6 py-5"/>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-transparent">
+                      {data.map((item, index) => (
+                        <tr key={`${item.id || index}-delay`}>
+                          <td className={`px-6 ${!selectedProcess ?"py-[0.625rem]": "py-4"}`}>
+                            <div className="w-8 h-8 p-1">
+                              {item.arrangedAt ? (
+                                <Tooltip>
+                                  <TooltipTrigger>
+                                    <div className="w-6 h-6 z-10 flex items-center justify-center border rounded-full border-green-700 bg-green-900/60">
+                                      <Timer className="h-4 w-4 text-green-500" />
+                                    </div>
+                                  </TooltipTrigger>
+                                  <TooltipContent className="bg-gray-800 border border-gray-700 text-gray-300">
+                                    {`Arranged at ${new Date(item.arrangedAt).toLocaleString()}`}
+                                  </TooltipContent>
+                                </Tooltip>
+                              ) :
+                              item.reportedAt && (
+                                <Tooltip>
+                                  <TooltipTrigger>
+                                    <div className="w-6 h-6 z-10 flex items-center justify-center border rounded-full border-yellow-700 bg-yellow-900/60">
+                                      <Timer className="h-4 w-4 text-yellow-500" />
+                                    </div>
+                                  </TooltipTrigger>
+                                  <TooltipContent className="bg-gray-800 border border-gray-700 text-gray-300">
+                                    {`Reported at ${new Date(item.reportedAt).toLocaleString()}`}
+                                  </TooltipContent>
+                                </Tooltip>
                               )}
-                            </button>
+                            </div>
+                          </td>
+                        </tr>
 
-                            {user?.role === "admin" ? (
-                              <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                  <button
-                                    disabled={loading[item.id] != null}
-                                    className="btn-danger p-0 flex items-center justify-center w-8 h-8"
-                                    title="Reject"
-                                  >
-                                    {loading[item.id] === "delete" ? (
-                                      <Loader2 className="h-4 w-4 animate-spin" />
-                                    ) : (
-                                      <X className="h-4 w-4" />
-                                    )}
-                                  </button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent className="bg-gray-800 border-gray-700">
-                                  <AlertDialogHeader>
-                                    <AlertDialogTitle className="text-white">Confirm Rejection</AlertDialogTitle>
-                                    <AlertDialogDescription className="text-gray-300">
-                                      Are you sure you want to reject this kanban request for{" "}
-                                      <strong>{item.partName}</strong>? This action cannot be undone.
-                                    </AlertDialogDescription>
-                                  </AlertDialogHeader>
-                                  <AlertDialogFooter>
-                                    <AlertDialogCancel className="bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600">
-                                      Cancel
-                                    </AlertDialogCancel>
-                                    <AlertDialogAction
-                                      onClick={() => handleAction([item.id], "delete")}
-                                      className="bg-red-600 hover:bg-red-700 text-white"
-                                    >
-                                      Reject
-                                    </AlertDialogAction>
-                                  </AlertDialogFooter>
-                                </AlertDialogContent>
-                              </AlertDialog>
-                            ) : (
-                              <button
-                                disabled={loading[item.id] != null}
-                                className="btn-danger p-0 flex items-center justify-center w-8 h-8"
-                                title="Reject"
-                                onClick={() =>
-                                  toast({
-                                    title: "Not allowed",
-                                    description: "You are not allowed to reject kanban requests.",
-                                    variant: "destructive",
-                                  })
-                                }
-                              >
-                                <X className="h-4 w-4" />
-                              </button>
-                            )}
-                          </div>
-                        </td>
+                      ))}
+                    </tbody>
+                  </table>
+                }
+                <table className={`w-full ${isFrozen && isPreparationSheet ? "border-2 border-blue-400" : ""}`}>
+                  <thead className="bg-gray-700">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                        SL. No.
+                      </th>
+                      {columns.map((column) => (
+                        <th
+                          key={column}
+                          className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider"
+                        >
+                          {column.replace(/([A-Z])/g, " $1").replace(/^./, (str) => str.toUpperCase())}
+                        </th>
+                      ))}
+                      {showActions && (
+                        <th className="px-6 py-3 text-center text-xs font-medium text-gray-300 uppercase tracking-wider flex items-center justify-center">
+                          <span>Actions</span>
+                        </th>
                       )}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="relative divide-y divide-gray-700">
+                    {data.map((item, index) => (
+                      <tr key={item.id || index} className="hover:bg-slate-800">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                          {index + 1}
+                          </td>
+                        {columns.map((column) => (
+                          <td key={column} className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                            {typeof item[column] === "string" &&
+                            /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z/.test(item[column] as string)
+                              ? new Date(item[column] as string).toLocaleString()
+                              : String(item[column] ?? "-")}
+                          </td>
+                        ))}
+                        {showActions && (
+                          <td className="px-4 py-4 whitespace-nowrap text-center">
+                            <div className="flex flex-row items-center justify-center space-x-2 flex-wrap">
+                              <button
+                                onClick={() => handleAction([item.id], "update")}
+                                disabled={loading[item.id] != null || (item.reportId && item.arrangedAt === null) ? true : false}
+                                className="p-0 flex items-center justify-center w-8 h-8 disabled:cursor-not-allowed disabled:opacity-50"
+                                title="Mark as Done"
+                              >
+                                {loading[item.id] === "update" ? (
+                                  <Loader2 className="h-6 w-6 animate-spin" />
+                                ) : (
+                                  <CircleCheck className="h-6 w-6 p-[0.125rem] btn-success text-black rounded-full" />
+                                )}
+                              </button>
+                              {(user?.role === "admin" || (user?.role === "supplier" && !isSupplySheet && (isPreparationSheet && !item.arrangedAt))) && (
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                      <BreadcrumbEllipsis className="h-5 w-5 text-gray-400" />
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="center" className="z-50 w-fit rounded-md bg-gray-800 border border-gray-700 px-2 py-3 flex flex-col gap-2 text-xs">
+                                    {user?.role === "admin" && (
+                                      <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                          <button
+                                            disabled={loading[item.id] != null}
+                                            className="p-2 flex items-center justify-start gap-1"
+                                            title="Reject"
+                                          >
+                                            {loading[item.id] === "delete" ? (
+                                              <Loader2 className="h-4 w-4 animate-spin" />
+                                            ) : (
+                                              <>
+                                              <CircleX className="h-6 w-6 p-[0.125rem] mr-2 bg-red-600/90 text-black rounded-full" />
+                                              Reject
+                                              </>
+                                            )}
+                                          </button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent className="bg-gray-800 border-gray-700">
+                                          <AlertDialogHeader>
+                                            <AlertDialogTitle className="text-white">Confirm Rejection</AlertDialogTitle>
+                                            <AlertDialogDescription className="text-gray-300">
+                                              Are you sure you want to reject this kanban request for{" "}
+                                              <strong>{item.partIdNo}</strong>? This action cannot be undone.
+                                            </AlertDialogDescription>
+                                          </AlertDialogHeader>
+                                          <AlertDialogFooter>
+                                            <AlertDialogCancel className="bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600">
+                                              Cancel
+                                            </AlertDialogCancel>
+                                            <AlertDialogAction
+                                              onClick={() => handleAction([item.id], "delete")}
+                                              className="bg-red-600 hover:bg-red-700 text-white"
+                                            >
+                                              Reject
+                                            </AlertDialogAction>
+                                          </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                      </AlertDialog>
+                                    )}
+                                    {!item.arrangedAt && isPreparationSheet && (user?.role === "supplier" || user?.role === "admin") && (
+                                      <>
+                                        {user?.role === "admin" && <DropdownMenuSeparator className="h-[1px] bg-gray-700" />}
+                                        <DropdownMenuItem>
+                                          { item.reportedAt ? (
+                                            <button
+                                              disabled={loading[item.id] != null}
+                                              className="p-2 flex items-center justify-start gap-1"
+                                              title="Undo delay report"
+                                              onClick={() => handleAction([item.reportId!], "undo_report")}
+                                            >
+                                              {loading[item.id] === "undo_report" ? (
+                                                <Loader2 className="h-4 w-4 animate-spin" />
+                                              ) : (
+                                                <>
+                                                <Undo2 className="h-6 w-6 p-[0.125rem] mr-2 bg-gray-400/90 text-black rounded-full" />
+                                                Undo delay report
+                                                </>
+                                              )}
+                                            </button>
+                                            ) : (
+                                            <button
+                                              disabled={loading[item.id] != null}
+                                              className="p-2 flex items-center justify-start gap-1"
+                                              title="Report as delayed"
+                                              onClick={() => handleAction([item.id], "report")}
+                                            >
+                                              {loading[item.id] === "report" ? (
+                                                <Loader2 className="h-4 w-4 animate-spin" />
+                                              ) : (
+                                                <>
+                                                <Timer className="h-6 w-6 p-[0.125rem] mr-2 bg-yellow-600/90 text-black rounded-full" />
+                                                Report as delayed
+                                                </>
+                                              )}
+                                            </button>
+                                          )}
+                                        </DropdownMenuItem>
+                                      </>
+                                    )}
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              )}
+                            </div>
+                          </td>
+                        )}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         </>

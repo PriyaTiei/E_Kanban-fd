@@ -6,10 +6,10 @@
       "static/css/app/layout.css",
       "static/chunks/app/layout.js"
     ],
-    "/kanban-logs/page": [
+    "/preparation-list/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/kanban-logs/page.js"
+      "static/chunks/app/preparation-list/page.js"
     ],
     "/login/page": [
       "static/chunks/webpack.js",
@@ -21,15 +21,35 @@
       "static/chunks/main-app.js",
       "static/chunks/app/page.js"
     ],
+    "/kanban-logs/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/kanban-logs/page.js"
+    ],
+    "/delay-list/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/delay-list/page.js"
+    ],
     "/supply-list/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/supply-list/page.js"
     ],
-    "/preparation-list/page": [
+    "/settings/layout": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/preparation-list/page.js"
+      "static/chunks/app/settings/layout.js"
+    ],
+    "/settings/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/settings/page.js"
+    ],
+    "/settings/edit-stations/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/settings/edit-stations/page.js"
     ]
   }
 }

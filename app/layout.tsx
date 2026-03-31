@@ -8,8 +8,9 @@ import Footer from "./components/Footer"
 import { AuthProvider } from "./contexts/AuthContext"
 import { Toaster } from "@/components/ui/toaster"
 import AuthWrapper from "./components/AuthWrapper"
-import AppSidebar from "./components/AppSidebar"
-import { SidebarProvider } from "./contexts/SideBarContext"
+// import AppSidebar from "./components/AppSidebar"
+// import { SidebarProvider } from "./contexts/SideBarContext"
+import { TooltipProvider } from "@/components/ui/tooltip"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -29,12 +30,15 @@ export default function RootLayout({
       <body className={`${inter.className} bg-gray-900 text-gray-100 min-h-screen`}>
         <AuthProvider>
           <AuthWrapper>
-            <Header />
-            <SidebarProvider>
-              <AppSidebar />
-              <main className="flex-1 min-h-screen">{children}</main>
-            </SidebarProvider>
-            <Footer />
+            <TooltipProvider>
+              <Header />
+              {/* TO ENABLE SIDEBAR, UNCOMMENT THE FOLLOWING AND GO TO Header.tsx */}
+              {/* <SidebarProvider> */}
+                {/* <AppSidebar /> */}
+                <main className="flex-1 min-h-screen">{children}</main>
+              {/* </SidebarProvider> */}
+              <Footer />
+            </TooltipProvider>
           </AuthWrapper>
           <Toaster />
         </AuthProvider>

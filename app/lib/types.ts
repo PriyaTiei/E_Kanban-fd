@@ -36,6 +36,9 @@ export interface KanbanItem {
   prepLocation?: string
   supplyLocation?: string
   requestedAt?: string | Date // ISO timestamp
+  reportId?: number
+  reportedAt?: string | Date // ISO timestamp
+  arrangedAt?: string | Date // ISO timestamp
   acknowledgedAt?: string | Date // ISO timestamp or undefined
   acknowledgedByLogistics?: boolean
   fulfilled?: boolean

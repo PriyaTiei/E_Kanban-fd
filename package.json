@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -H 10.82.126.73 -p 3061", 
+    "dev": "next dev -H 10.82.126.73 -p 3061",
     "build": "next build",
     "start": "next start --port 3059",
     "lint": "next lint"
@@ -42,6 +42,7 @@
     "clsx": "^2.1.1",
     "cmdk": "latest",
     "embla-carousel-react": "latest",
+    "git-filter-repo": "^0.0.30",
     "input-otp": "latest",
     "lucide-react": "^0.454.0",
     "next": "15.2.4",
