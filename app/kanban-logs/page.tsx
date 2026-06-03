@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { fetchKanbanLogs } from "../lib/api"
+import { fetchAllProcesses, fetchKanbanLogs } from "../lib/api"
 import type { KanbanLogItem, KanbanLogQueryParams } from "../lib/types"
 import { History, RefreshCw, Filter, MapPin, Clock, CheckCircle, AlertCircle, Package } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -22,6 +22,8 @@ export default function KanbanLogsPage() {
   const [statusFilter, setStatusFilter] = useState<"all" | "requested" | "acknowledged" | "fulfilled">("all")
   const [dateTimeFilter, setDateTimeFilter] = useState<string>("")
   const [partIdNoFilter, setPartIdNoFilter] = useState<string>("")
+  const [processes, setProcesses] = useState<string[]>([])
+  const [processFilter, setProcessFilter] = useState<string>("")
   const limit = 20
 
   useEffect(() => {
@@ -53,8 +55,9 @@ export default function KanbanLogsPage() {
       const filterParam = statusFilter === "all" ? undefined : statusFilter
       const queryParams: KanbanLogQueryParams = {
         status: filterParam,
-        dateTime: dateTimeFilter || undefined,
-        search: partIdNoFilter || undefined,
+        dateTime: dateTimeFilter,
+        search: partIdNoFilter,
+        process: processFilter,
         page,
         limit,
       }
@@ -79,10 +82,26 @@ export default function KanbanLogsPage() {
     }
   }
 
+  const loadProcesses = async () => {
+    try{
+      const processes = await fetchAllProcesses();
+      console.log("processes: ",processes);
+      
+      setProcesses(processes)
+    } catch (error) {
+      console.error("Error loading processes:", error)
+    }
+  }
+
   useEffect(() => {
     loadLogs(currentPage);
-  }, [currentPage, statusFilter, dateTimeFilter, partIdNoFilter]);
+    console.log("selected process: ", processFilter);
+    
+  }, [currentPage, statusFilter, dateTimeFilter, partIdNoFilter, processFilter]);
 
+  useEffect(() => {
+    loadProcesses();
+  }, [])
 
   const getStatusInfo = (log: KanbanLogItem) => {
     if (log.fulfilled) {
@@ -172,6 +191,16 @@ export default function KanbanLogsPage() {
                   <option value="requested">Pending</option>
                   <option value="acknowledged">Prepared</option>
                   <option value="fulfilled">Supplied</option>
+                </select>
+                <select
+                  value={processFilter}
+                  onChange={(e) => setProcessFilter(e.target.value)}
+                  className="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 leading-6 text-xs md:text-sm"
+                >
+                  <option value="all">Select Process</option>
+                  {processes.map((p, i) => 
+                    <option key={i} value={p}>{p}</option>
+                  )}
                 </select>
                 {/* Date and time filter */}
                 <input
@@ -273,12 +302,16 @@ export default function KanbanLogsPage() {
                                         <div className="flex flex-col gap-2 text-xs md:text-sm">
                                           <div className="flex items-center gap-y-2 gap-x-4 flex-wrap">
                                             <div>
+                                              <span className="text-gray-400">Plant:</span>
+                                              <span className="ml-2 text-white">{log.plantName || "N/A"}</span>
+                                            </div>
+                                            <div>
                                               <span className="text-gray-400">Station:</span>
                                               <span className="ml-2 text-white">{log.stationName}</span>
                                             </div>
                                             <div>
-                                              <span className="text-gray-400">Plant:</span>
-                                              <span className="ml-2 text-white">{log.plantName || "N/A"}</span>
+                                              <span className="text-gray-400">Process:</span>
+                                              <span className="ml-2 text-white">{log.process || "N/A"}</span>
                                             </div>
                                           </div>
                                           <div>

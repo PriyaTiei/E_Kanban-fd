@@ -1,6 +1,6 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { Inter } from "next/font/google"
+import localFont from "next/font/local"
 import "./app.css"
 import "../styles/globals.css"
 import Header from "./components/Header"
@@ -12,7 +12,9 @@ import AuthWrapper from "./components/AuthWrapper"
 // import { SidebarProvider } from "./contexts/SideBarContext"
 import { TooltipProvider } from "@/components/ui/tooltip"
 
-const inter = Inter({ subsets: ["latin"] })
+const inter = localFont({
+  src: '../public/fonts/Inter/static/Inter_28pt-Regular.ttf',
+});
 
 export const metadata: Metadata = {
   title: "E-Kanban System",

@@ -1,7 +1,8 @@
 {
   "/preparation-list/page": "app/preparation-list/page.js",
+  "/login/page": "app/login/page.js",
   "/supply-list/page": "app/supply-list/page.js",
   "/delay-list/page": "app/delay-list/page.js",
-  "/page": "app/page.js",
-  "/settings/edit-stations/page": "app/settings/edit-stations/page.js"
+  "/kanban-logs/page": "app/kanban-logs/page.js",
+  "/page": "app/page.js"
 }

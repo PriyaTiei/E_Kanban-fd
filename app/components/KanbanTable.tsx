@@ -77,7 +77,7 @@ export default function KanbanTable({
   const isAllowedSupplySheetUsers = user?.role === "admin" || user?.role === "supplier"
   const isAllowedDelaySheetUsers = user?.role === "admin" || user?.role === "logistics"
 
-  const showActions = selectedProcess !== null && ((isPreparationSheet && isAllowedPrepSheetUsers) || (isSupplySheet && isAllowedSupplySheetUsers) || (isDelaySheet && isAllowedDelaySheetUsers))
+  const showActions = ((isPreparationSheet && isAllowedPrepSheetUsers) || (isSupplySheet && isAllowedSupplySheetUsers) || (isDelaySheet && isAllowedDelaySheetUsers))
   
   // Check if current process is frozen (from data)
   const isFrozen = selectedProcess ? isFrozenData === true : false
