@@ -58,7 +58,24 @@ function FileUpload({ fileUploadOpen, setFileUploadOpen }: { fileUploadOpen: boo
             // 2. Check headers for each sheet
             for (const sheetName of fileFormat.expectedSheets) {
                 const worksheet = workbook.Sheets[sheetName];
-                const headers = XLSX.utils.sheet_to_json<String>(worksheet, { header: 1 })[0];
+                const rawHeaders = (XLSX.utils.sheet_to_json<any>(worksheet, { header: 1 })[0] || []) as any[];
+                const headers = rawHeaders.map(h => String(h ?? '').trim()).filter(h => h.length > 0);
+
+                if (sheetName === 'stationParts') {
+                    const matchesStandard = fileFormat.expectedStationPartsHeaders.every((h, i) => headers[i] === h) &&
+                        headers.length === fileFormat.expectedStationPartsHeaders.length;
+                    const matchesWithAllowed = fileFormat.expectedStationPartsHeadersWithAllowed.every((h, i) => headers[i] === h) &&
+                        headers.length === fileFormat.expectedStationPartsHeadersWithAllowed.length;
+
+                    console.log("stationParts headers:", headers, "matches standard:", matchesStandard, "matches with allowed:", matchesWithAllowed);
+                    if (!matchesStandard && !matchesWithAllowed) {
+                        setError(`Sheet "${sheetName}" headers are incorrect or in wrong order.`);
+                        setShowProgress(false);
+                        return;
+                    }
+                    continue;
+                }
+
                 let expectedHeaders: String[] = [];
                 switch (sheetName) {
                     case 'products':
@@ -69,9 +86,6 @@ function FileUpload({ fileUploadOpen, setFileUploadOpen }: { fileUploadOpen: boo
                         break;
                     case 'parts':
                         expectedHeaders = fileFormat.expectedPartsHeaders;
-                        break;
-                    case 'stationParts':
-                        expectedHeaders = fileFormat.expectedStationPartsHeaders;
                         break;
                     case 'productPartExceptions':
                         expectedHeaders = fileFormat.expectedProductPartExceptionsHeaders;

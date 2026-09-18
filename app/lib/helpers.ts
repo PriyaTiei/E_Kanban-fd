@@ -25,6 +25,9 @@ export const fileFormat = {
     expectedStationPartsHeaders: [
         "station", "part", "consumptionPerProduct", "binQuantity", "currentQuantity", "process", "prepLocation", "supplyLocation",
     ],
+    expectedStationPartsHeadersWithAllowed: [
+        "station", "part", "allowed_for_all_products", "consumptionPerProduct", "binQuantity", "currentQuantity", "process", "prepLocation", "supplyLocation",
+    ],
     expectedProductPartExceptionsHeaders: [
         "part", "product",
     ]
